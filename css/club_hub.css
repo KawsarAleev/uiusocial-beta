@@ -1,0 +1,205 @@
+.featured-clubs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.club-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #fae6d8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.club-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.club-logo-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    margin: 0 auto 16px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.club-logo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.club-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.club-members {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 16px;
+}
+
+.club-card-footer {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.club-card-footer .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* ---------- Light-background button variants ---------- */
+
+/* Join button — very light warm tint */
+.club-card-footer .btn-join-club {
+    background-color: #fdf1ea;
+    color: #b54a1d;
+    border: 1px solid #f6ddcc;
+}
+.club-card-footer .btn-join-club:hover {
+    background-color: #fbe4d6;
+    border-color: #f0c9b0;
+}
+
+/* Explore button — very light neutral tint */
+.club-card-footer .btn-explore {
+    background-color: #f7f7f7;
+    color: #444;
+    border: 1px solid #ececec;
+}
+.club-card-footer .btn-explore:hover {
+    background-color: #efefef;
+    border-color: #e0e0e0;
+}
+
+/* Cancel button — very light red tint */
+.club-card-footer .btn-cancel-club-request {
+    background-color: #fdf0f0;
+    color: #c62828;
+    border: 1px solid #f6d6d6;
+}
+.club-card-footer .btn-cancel-club-request:hover {
+    background-color: #fbe0e0;
+    border-color: #efc0c0;
+}
+
+/* Joined button — very light green tint, disabled */
+.club-card-footer .btn-action[disabled] {
+    background-color: #f0f8f2;
+    color: #2e7d32;
+    border: 1px solid #d6ebdc;
+    opacity: 1;
+    cursor: default;
+}
+.club-card-footer .btn-action[disabled]:hover {
+    background-color: #f0f8f2;
+    border-color: #d6ebdc;
+}
+
+/* ---------- Other club-hub styles (unchanged) ---------- */
+
+.club-event-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #fae6d8;
+}
+
+.club-event-img-wrap {
+    position: relative;
+    height: 140px;
+}
+
+.club-event-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.club-event-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: white;
+}
+
+.club-event-badge.workshop   { background-color: #b54a1d; }
+.club-event-badge.competition { background-color: #0d47a1; }
+.club-event-badge.festival   { background-color: #c62828; }
+
+.club-event-body {
+    padding: 16px;
+}
+
+.club-event-date {
+    font-size: 11px;
+    font-weight: 700;
+    color: #b54a1d;
+    margin-bottom: 4px;
+}
+
+.club-event-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.club-event-loc {
+    font-size: 12px;
+    color: #777;
+}
+
+.avatar-group {
+    display: flex;
+}
+
+.avatar-sm {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    margin-left: -8px;
+}
+
+.avatar-group .avatar-sm:first-child {
+    margin-left: 0;
+}
+
+.more-avatar {
+    background-color: #03a9f4;
+    color: white;
+    font-size: 9px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

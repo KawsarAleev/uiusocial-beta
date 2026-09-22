@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - UIU Social</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/messages.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-graduation-cap mr-2 text-primary"></i>
+                <div>
+                    <a href="/uiusocial/index.html">UIU Social</a>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+                <a href="groups.html" class="nav-item">
+                    <i class="fa-solid fa-users-line"></i> Department Groups
+                </a>
+                <a href="club_hub.html" class="nav-item">
+                    <i class="fa-solid fa-puzzle-piece"></i> Club Hub
+                </a>
+                <a href="events.html" class="nav-item">
+                    <i class="fa-regular fa-calendar"></i> Events
+                </a>
+                <a href="messages.html" class="nav-item active">
+                    <i class="fa-regular fa-message"></i> Messages
+                </a>
+                <a href="admin.html" class="nav-item">
+                    <i class="fa-solid fa-shield-halved"></i> Admin Panel
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="login.html" class="nav-item sign-out text-danger">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                </a>
+            </div>
+        </aside>
+
+        <div class="main-content">
+
+            <div class="chat-list-pane">
+                <header class="top-header" style="height: 60px; padding: 0 16px; position: static;">
+                    <div class="search-bar" style="width: 100%;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="chat-search-input" placeholder="Search conversations...">
+                    </div>
+                </header>
+
+                <div class="chat-list-header">
+                    <h2>Messages</h2>
+                </div>
+
+                <div class="chat-items" id="chat-items-container">
+                    <!-- Chat items will be loaded dynamically -->
+                </div>
+            </div>
+
+            <div class="chat-area-pane">
+                <div class="chat-area-header" id="chat-area-header" style="display: none;">
+                    <div class="chat-header-user">
+                        <img id="chat-header-avatar" src="assets/images/students/default.png" class="avatar"
+                            style="width: 36px; height: 36px;">
+                        <div>
+                            <div id="chat-header-title" class="chat-header-name"></div>
+                            <div id="chat-header-meta" class="chat-header-meta"></div>
+                        </div>
+                    </div>
+                    <div class="chat-header-actions">
+                        <i id="toggle-info-btn" class="fa-solid fa-circle-info text-primary"></i>
+                    </div>
+                </div>
+
+                <!-- Empty state (shown when no chat selected) -->
+                <div class="chat-empty-state" id="chat-empty-state">
+                    <img height="600" width="600" src="assets/images/svg/chat.svg" alt="" class="chat-empty-icon">
+                </div>
+
+                <div class="chat-messages" id="chat-messages-container" style="display: none;">
+                    <!-- Messages will be loaded dynamically -->
+                </div>
+
+                <div class="chat-input-area" id="chat-input-area" style="display: none;">
+                    <div class="chat-input-actions">
+                        <i class="fa-solid fa-circle-plus"></i>
+                        <i class="fa-regular fa-image"></i>
+                    </div>
+                    <div class="chat-input-wrapper">
+                        <input type="text" id="chat-input-field" class="chat-input" placeholder="Type your message...">
+                    </div>
+                    <div class="chat-send-btn" id="chat-send-btn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-info-pane" id="user-info-pane" style="display: none;">
+                <header class="top-header"
+                    style="height: 70px; padding: 0 16px; justify-content: flex-end; position: static; background: transparent; border-bottom: none;">
+                    <div class="header-actions">
+                        <div class="header-icon"><i class="fa-regular fa-bell"></i></div>
+                        <img id="current-user-avatar" src="assets/images/students/default.png" alt="User" class="avatar"
+                            style="width: 32px; height: 32px; object-fit: cover;">
+                    </div>
+                </header>
+
+                <div class="info-header">
+                    <img id="info-avatar" src="assets/images/students/default.png"
+                        class="info-avatar user-profile-link" data-user-id="">
+                    <div id="info-name" class="info-name user-profile-link" data-user-id=""></div>
+                    <div id="info-role" class="info-role"></div>
+                    <div id="info-badges" class="d-flex justify-content-center gap-2 mt-2 mb-3">
+                        <!-- Badges will be loaded dynamically -->
+                    </div>
+                    <a id="info-view-profile-btn" href="profile.html" class="btn btn-outline text-sm w-100"><i
+                            class="fa-solid fa-user mr-1"></i> View Full Profile</a>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-title">SHARED MEDIA</div>
+                    <div class="media-grid" id="shared-media-grid">
+                        <!-- Media items will be loaded dynamically -->
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-title">PREFERENCES</div>
+                    <div class="pref-item">
+                        <span>Mute Notifications</span>
+                        <div class="toggle-switch"></div>
+                    </div>
+                </div>
+
+                <div class="danger-actions">
+                    <div id="block-action-btn" class="danger-action">
+                        <i class="fa-solid fa-ban"></i> Block Member
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/messages.js"></script>
+</body>
+
+</html>

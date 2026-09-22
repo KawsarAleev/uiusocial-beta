@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - UIU Social</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/events.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-graduation-cap mr-2 text-primary"></i>
+                <div>
+                    <a href="/uiusocial/index.html">UIU Social</a>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+                <a href="groups.html" class="nav-item">
+                    <i class="fa-solid fa-users-line"></i> Department Groups
+                </a>
+                <a href="club_hub.html" class="nav-item">
+                    <i class="fa-solid fa-puzzle-piece"></i> Club Hub
+                </a>
+                <a href="events.html" class="nav-item active">
+                    <i class="fa-regular fa-calendar"></i> Events
+                </a>
+                <a href="messages.html" class="nav-item">
+                    <i class="fa-regular fa-message"></i> Messages
+                </a>
+                <a href="admin.html" class="nav-item">
+                    <i class="fa-solid fa-shield-halved"></i> Admin Panel
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="login.html" class="nav-item sign-out text-danger">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search events, seminars...">
+                </div>
+
+                <div class="header-actions">
+                    <div class="header-icon">
+                        <i class="fa-regular fa-bell"></i>
+                    </div>
+                    <div class="header-user">
+                        <img src="assets/images/students/kawsar.png?img=11" alt="User Avatar" class="avatar">
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="d-flex justify-content-between align-items-end mb-4">
+                    <div class="page-header m-0">
+                        <h1 class="page-title">Campus Events & Seminars</h1>
+                        <p class="page-subtitle">Discover opportunities to learn, network, and grow within the UIU
+                            community.</p>
+                    </div>
+                    <button class="btn btn-primary" id="create-event-btn" style="display:none;"><i
+                            class="fa-solid fa-plus"></i> Create Event</button>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="events-tabs mb-4">
+                    <a href="#" class="tab active" data-filter="upcoming">Upcoming</a>
+                    <a href="#" class="tab" data-filter="past">Past</a>
+                    <a href="#" class="tab" data-filter="registered">My Registrations</a>
+                </div>
+
+                <!-- Featured Event (from DB) -->
+                <div class="featured-event" id="featured-event" style="display: none;">
+                    <div class="featured-image">
+                        <div class="event-card-img" id="featured-img"
+                            style="background-size: cover; background-position: center; width: 100%; height: 100%; min-height: 250px;">
+                            <div class="event-card-date" id="featured-date">
+                                <span></span>
+                                <strong></strong>
+                            </div>
+                            <span class="badge" id="featured-badge"></span>
+                        </div>
+                    </div>
+
+                    <div class="featured-content">
+                        <div class="event-tags" id="featured-tags"></div>
+                        <h2 class="featured-title" id="featured-title"></h2>
+                        <p class="featured-desc" id="featured-desc"></p>
+
+                        <div class="featured-meta" id="featured-meta">
+                            <span><i class="fa-solid fa-location-dot"></i> <span id="featured-location"></span></span>
+                            <span><i class="fa-solid fa-user-group"></i> <span id="featured-attendees">0</span>
+                                Attending</span>
+                        </div>
+
+                        <div class="featured-footer">
+                            <div class="organizer">
+                                <!-- <img src="assets/images/students/default.png" class="avatar"
+                                    style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%;"
+                                    id="featured-organizer-img"> -->
+                                <div class="organizer-info">
+                                    Organized by
+                                    <strong id="featured-organizer"></strong>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-join-event" id="featured-join-btn" data-id=""><i
+                                    class="fa-solid fa-plus"></i> Register</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Events Grid -->
+                <div class="events-grid" id="events-grid"></div>
+
+                <!-- Academic Seminars Section -->
+                <div class="section-heading" id="seminars-heading" style="display: none;">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <h3>Academic Seminars</h3>
+                </div>
+                <div class="seminars-list" id="seminars-list"></div>
+
+            </div>
+        </main>
+    </div>
+    <script src="js/utils.js"></script>
+    <script src="js/events.js"></script>
+</body>
+
+</html>

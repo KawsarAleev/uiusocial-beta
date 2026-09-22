@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Details - UIU Social</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="css/club_detail.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-graduation-cap mr-2 text-primary"></i>
+                <div>
+                    <a href="/uiusocial/index.html">UIU Social</a>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+                <a href="groups.html" class="nav-item active">
+                    <i class="fa-solid fa-users-line"></i> Department Groups
+                </a>
+                <a href="club_hub.html" class="nav-item">
+                    <i class="fa-solid fa-puzzle-piece"></i> Club Hub
+                </a>
+                <a href="events.html" class="nav-item">
+                    <i class="fa-regular fa-calendar"></i> Events
+                </a>
+                <a href="messages.html" class="nav-item">
+                    <i class="fa-regular fa-message"></i> Messages
+                </a>
+                <a href="admin.html" class="nav-item">
+                    <i class="fa-solid fa-shield-halved"></i> Admin Panel
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="login.html" class="nav-item sign-out">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content-container">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search groups..." id="search-input">
+                </div>
+                <div class="header-actions">
+                    <div class="header-icon">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge"></span>
+                    </div>
+                    <div class="header-user">
+                        <img src="assets/images/students/kawsar.png?img=11" alt="User Avatar" class="avatar">
+                    </div>
+                </div>
+            </header>
+
+            <div class="main-content" id="group-detail-container" style="padding: 15px;">
+                <div class="profile-header card">
+                    <!-- Cover Banner - dynamic color -->
+                    <div class="profile-cover" id="group-cover">
+                        <div class="club-cover-icon" id="group-cover-icon">
+                            <i id="group-cover-icon-el" class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-container">
+                        <div id="group-avatar-wrap" class="profile-main-avatar club-avatar-wrap">
+                            <img id="group-avatar-img" src="" alt="Group Logo" class="club-avatar-img">
+                        </div>
+
+                        <div class="profile-details">
+                            <h2 id="group-name">Loading...</h2>
+                            <div class="profile-meta">
+                                <span id="group-category"></span>
+                                • <span id="group-members"></span> Members
+                                • Created <span id="group-created"></span>
+                            </div>
+                            <div id="group-tags" class="mt-2"></div>
+                            <p id="group-about" class="mt-3 text-muted"></p>
+                        </div>
+
+                        <div class="profile-actions">
+                            <button class="btn btn-primary" id="group-join-btn">
+                                <i class="fa-solid fa-user-plus"></i> Join Group
+                            </button>
+                            <button class="btn btn-outline" id="group-share-btn">
+                                <i class="fa-solid fa-share-nodes"></i> Share
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="profile-tabs mt-4">
+                    <a href="#" class="tab active" data-tab="feed">Recent Posts</a>
+                    <a href="#" class="tab" data-tab="members">Members</a>
+                    <a href="#" class="tab" data-tab="activities">Activities</a>
+                </div>
+
+                <div class="feed-section mt-3" id="tab-feed">
+                    <!-- Create Post Card -->
+                    <div class="card create-post-card mb-3" id="group-create-post" style="display: none;">
+                        <div class="d-flex gap-2 mb-2">
+                            <img id="group-post-avatar" src="assets/images/students/default.png" alt="User"
+                                class="avatar header-avatar-img">
+                            <input type="text" class="post-input" id="group-post-input" placeholder="Post to group...">
+                        </div>
+                        <div class="post-actions d-flex justify-content-end align-items-center mt-2">
+                            <button type="button" class="btn btn-primary btn-sm"
+                                id="group-submit-post-btn">Post</button>
+                        </div>
+                    </div>
+                    <!-- Posts Container -->
+                    <div id="group-posts-container"></div>
+                </div>
+
+                <div class="feed-section mt-3" id="tab-members" style="display:none;">
+                    <div class="card text-center text-muted p-5">
+                        <i class="fa-solid fa-users mb-3" style="font-size:2rem;"></i>
+                        <p>Member directory will be available once the backend is connected.</p>
+                    </div>
+                </div>
+
+                <div class="feed-section mt-3" id="tab-activities" style="display:none;">
+                    <!-- by js -->
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/group_detail.js"></script>
+</body>
+
+</html>

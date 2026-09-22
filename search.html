@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search - UIU Social</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .search-tabs .tab { padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; background: var(--bg-body); color: var(--text-muted); }
+        .search-tabs .tab:hover { background: #fae6d8; }
+        .search-tabs .tab.active { background: var(--primary-color); color: white; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo"><i class="fa-solid fa-graduation-cap mr-2 text-primary"></i><div><a href="index.html">UIU Social</a></div></div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="groups.html" class="nav-item"><i class="fa-solid fa-users-line"></i> Department Groups</a>
+                <a href="club_hub.html" class="nav-item"><i class="fa-solid fa-puzzle-piece"></i> Club Hub</a>
+                <a href="events.html" class="nav-item"><i class="fa-regular fa-calendar"></i> Events</a>
+                <a href="messages.html" class="nav-item"><i class="fa-regular fa-message"></i> Messages</a>
+                <a href="admin.html" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Admin Panel</a>
+            </nav>
+            <div class="sidebar-footer"><a href="login.html" class="nav-item sign-out text-danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out</a></div>
+        </aside>
+        <main class="main-content">
+            <header class="top-header">
+                <div class="search-bar" style="width:400px;"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Search people, posts, groups..." id="global-search"></div>
+                <div class="header-actions">
+                    <div class="header-icon"><i class="fa-regular fa-bell"></i><span class="notification-badge"></span></div>
+                    <div class="header-user"><img src="assets/images/students/kawsar.png?img=11" alt="User" class="avatar"></div>
+                </div>
+            </header>
+            <div class="page-content">
+                <h1 class="page-title mb-3">Search</h1>
+                <div class="search-tabs mb-4" style="display:flex;gap:8px;">
+                    <button class="tab active" data-tab="people">People</button>
+                    <button class="tab" data-tab="posts">Posts</button>
+                    <button class="tab" data-tab="groups">Groups</button>
+                    <button class="tab" data-tab="clubs">Clubs</button>
+                    <button class="tab" data-tab="events">Events</button>
+                </div>
+                <div id="search-results" style="display:flex;flex-wrap:wrap;gap:16px;">
+                    <div class="text-muted">Start typing to search...</div>
+                </div>
+                <div id="search-suggestions" style="position:absolute;background:white;border:1px solid var(--border-color);border-radius:8px;box-shadow:var(--shadow-lg);z-index:100;max-height:300px;overflow-y:auto;display:none;"></div>
+            </div>
+        </main>
+    </div>
+    <script src="js/utils.js"></script>
+    <script src="js/search.js"></script>
+</body>
+</html>
