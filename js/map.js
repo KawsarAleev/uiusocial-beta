@@ -832,7 +832,13 @@
         input.addEventListener('keydown', e => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                if (!pick()) toast('No location matches that search.');
+                const q = input.value.trim();
+                if (pick()) return;
+                if (q.length >= 2) {
+                    window.location.href = `search.html?q=${encodeURIComponent(q)}`;
+                    return;
+                }
+                toast('No location matches that search.');
             }
         });
     }

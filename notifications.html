@@ -50,7 +50,10 @@
         </aside>
         <main class="main-content">
             <header class="top-header">
-                <div class="search-bar" style="width:400px;"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="notif-search-input" placeholder="Search notifications..."></div>
+                <div class="search-bar">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" placeholder="Search people, posts, groups, clubs, events...">
+</div>
                 <div class="header-actions">
                     <div class="header-icon"><i class="fa-regular fa-bell"></i><span class="notification-badge"></span></div>
                     <div class="header-user"><img src="assets/images/students/kawsar.png?img=11" alt="User" class="avatar"></div>
@@ -63,6 +66,10 @@
                         <span class="text-muted text-sm" id="notif-unread-count">Loading...</span>
                     </div>
                     <div class="d-flex gap-2 align-items-center">
+                        <div class="search-bar" style="width:260px;">
+                            <i class="fa-solid fa-filter"></i>
+                            <input type="text" id="notif-filter-input" placeholder="Filter this list...">
+                        </div>
                         <select class="form-control" id="notif-filter" style="width:auto;">
                             <option value="all">All</option>
                             <option value="unread">Unread</option>

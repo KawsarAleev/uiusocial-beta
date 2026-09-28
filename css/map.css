@@ -58,6 +58,22 @@
     transition: border-color 0.2s;
 }
 
+.map-controls .field-group input {
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius_md);
+    font-size: var(--font-size_sm);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.map-controls .field-group input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(240, 101, 42, 0.1);
+}
+
 .map-controls .field-group select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(240, 101, 42, 0.1);

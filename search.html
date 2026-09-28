@@ -29,25 +29,27 @@
         </aside>
         <main class="main-content">
             <header class="top-header">
-                <div class="search-bar" style="width:400px;"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Search people, posts, groups..." id="global-search"></div>
+                                <div class="search-bar" style="width:400px;"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="global-search" placeholder="Search people, posts, groups, clubs, events..."></div>
                 <div class="header-actions">
                     <div class="header-icon"><i class="fa-regular fa-bell"></i><span class="notification-badge"></span></div>
                     <div class="header-user"><img src="assets/images/students/kawsar.png?img=11" alt="User" class="avatar"></div>
                 </div>
             </header>
             <div class="page-content">
-                <h1 class="page-title mb-3">Search</h1>
-                <div class="search-tabs mb-4" style="display:flex;gap:8px;">
-                    <button class="tab active" data-tab="people">People</button>
-                    <button class="tab" data-tab="posts">Posts</button>
-                    <button class="tab" data-tab="groups">Groups</button>
-                    <button class="tab" data-tab="clubs">Clubs</button>
-                    <button class="tab" data-tab="events">Events</button>
+                <h1 class="page-title mb-1">Search</h1>
+                <p class="text-muted text-sm mb-3" id="search-summary">Search people, posts, department groups, clubs and events.</p>
+                <div class="search-tabs mb-3" style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="tab active" data-type="all">All</button>
+                    <button class="tab" data-type="people">People</button>
+                    <button class="tab" data-type="posts">Posts</button>
+                    <button class="tab" data-type="groups">Groups</button>
+                    <button class="tab" data-type="clubs">Clubs</button>
+                    <button class="tab" data-type="events">Events</button>
                 </div>
-                <div id="search-results" style="display:flex;flex-wrap:wrap;gap:16px;">
-                    <div class="text-muted">Start typing to search...</div>
+                <div id="search-results" class="search-results-grid"></div>
+                <div class="text-center mt-3" id="search-more-wrap" style="display:none;">
+                    <button class="btn btn-outline" id="search-load-more"><i class="fa-solid fa-arrow-down"></i> Load more</button>
                 </div>
-                <div id="search-suggestions" style="position:absolute;background:white;border:1px solid var(--border-color);border-radius:8px;box-shadow:var(--shadow-lg);z-index:100;max-height:300px;overflow-y:auto;display:none;"></div>
             </div>
         </main>
     </div>

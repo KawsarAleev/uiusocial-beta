@@ -917,6 +917,7 @@ async function initApp() {
     setupPendingBanner();
     setupHeaderUserMenu();
     setupNotifications();
+    setupGlobalSearch();
     setupGlobalProfileLinks();
     setupReportModal();
     setupMobileMenu();
@@ -952,12 +953,60 @@ function setupMobileMenu() {
     });
 }
 
+const SEARCH_TYPE_META = {
+    people: { label: 'People', icon: 'fa-solid fa-user' },
+    posts: { label: 'Posts', icon: 'fa-solid fa-newspaper' },
+    groups: { label: 'Groups', icon: 'fa-solid fa-users-line' },
+    clubs: { label: 'Clubs', icon: 'fa-solid fa-puzzle-piece' },
+    events: { label: 'Events', icon: 'fa-regular fa-calendar' }
+};
+
+function runGlobalSearch(input) {
+    const q = input.value.trim();
+    if (q.length < 1) {
+        toast('Type something to search');
+        return;
+    }
+    if (window.searchPageSearch && window.searchPageSearch()) {
+        input.blur();
+        return;
+    }
+    window.location.href = `search.html?q=${encodeURIComponent(q)}`;
+}
+
+function attachGlobalSearch(bar) {
+    const input = bar.querySelector('input');
+    if (!input || input.dataset.localSearch !== undefined) return;
+    input.classList.add('site-search-input');
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            runGlobalSearch(input);
+        }
+    });
+}
+
+function setupGlobalSearch() {
+    document.querySelectorAll('.top-header .search-bar').forEach(bar => {
+        attachGlobalSearch(bar);
+        const input = bar.querySelector('input');
+        if (input && !input.dataset.searchPlaceholder) {
+            input.dataset.searchPlaceholder = input.placeholder || '';
+            input.placeholder = 'Search people, posts, groups, clubs, events...';
+            input.setAttribute('title', 'Search people, posts, groups, clubs and events');
+        }
+    });
+}
 function setupSearchShortcut() {
     document.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
             e.preventDefault();
-            const search = document.querySelector('.search-bar input');
-            if (search) search.focus();
+            const search = document.querySelector('.top-header .search-bar input');
+            if (search) {
+                search.focus();
+                search.select();
+            }
         }
     });
 }

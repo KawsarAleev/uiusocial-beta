@@ -37,7 +37,7 @@ async function setupMessagesPage() {
     const blockBtn = document.getElementById('block-action-btn');
     blockBtn?.addEventListener('click', handleBlockToggle);
 
-    const searchInput = document.getElementById('chat-search-input');
+    const searchInput = document.getElementById('chat-filter-input');
     searchInput?.addEventListener('input', (e) => {
         const q = e.target.value.toLowerCase();
         document.querySelectorAll('.chat-item').forEach(item => {

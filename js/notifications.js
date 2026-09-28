@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterSelect = document.getElementById('notif-filter');
     filterSelect?.addEventListener('change', () => loadNotifications(filterSelect.value));
 
-    const searchInput = document.getElementById('notif-search-input');
+    const searchInput = document.getElementById('notif-filter-input');
     searchInput?.addEventListener('input', (e) => {
         const q = e.target.value.toLowerCase();
         document.querySelectorAll('.notif-page-item').forEach(item => {
