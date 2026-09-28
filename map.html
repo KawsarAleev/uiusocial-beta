@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Map - UIU Social</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/map.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-graduation-cap mr-2 text-primary"></i>
+                <div>
+                    <a href="/uiusocial/index.html">UIU Social</a>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+                <a href="groups.html" class="nav-item">
+                    <i class="fa-solid fa-users-line"></i> Department Groups
+                </a>
+                <a href="club_hub.html" class="nav-item">
+                    <i class="fa-solid fa-puzzle-piece"></i> Club Hub
+                </a>
+                <a href="events.html" class="nav-item">
+                    <i class="fa-regular fa-calendar"></i> Events
+                </a>
+                <a href="messages.html" class="nav-item">
+                    <i class="fa-regular fa-message"></i> Messages
+                </a>
+                <a href="map.html" class="nav-item active">
+                    <i class="fa-solid fa-map-location-dot"></i> Campus Map
+                </a>
+                <a href="admin.html" class="nav-item">
+                    <i class="fa-solid fa-shield-halved"></i> Admin Panel
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="login.html" class="nav-item sign-out text-danger">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="map-search" placeholder="Search rooms, lifts, washrooms...">
+                </div>
+                <div class="header-actions">
+                    <div class="header-icon">
+                        <i class="fa-regular fa-bell"></i>
+                    </div>
+                    <div class="header-user">
+                        <img src="assets/images/students/kawsar.png?img=11" alt="User Avatar" class="avatar">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <div class="map-page">
+                    <div class="map-page-title">
+                        <i class="fa-solid fa-map-location-dot"></i>Navigation Map
+                    </div>
+                    <p class="map-page-subtitle">
+                        UIU Academic Building &middot; 2nd Floor
+                    </p>
+
+                    <div class="legend">
+                        <div class="legend-item"><span class="legend-swatch marker-lift"></span> Lifts (6)</div>
+                        <div class="legend-item"><span class="legend-swatch marker-stair"></span> Stairs</div>
+                        <div class="legend-item"><span class="legend-swatch marker-escalator"></span> Escalator</div>
+                        <div class="legend-item"><span class="legend-swatch marker-washroom"></span> Washrooms</div>
+                        <div class="legend-item"><span class="legend-swatch marker-exit"></span> Fire Exits</div>
+                        <div class="legend-item"><span class="legend-swatch marker-room"></span> Rooms</div>
+                        <div class="legend-item"><span class="legend-swatch marker-corridor"></span> Corridors (roads)</div>
+                    </div>
+
+                    <div class="map-controls">
+                        <div class="field-group">
+                            <label for="start-node">Current Location</label>
+                            <select id="start-node">
+                                <option value="" disabled selected>Select...</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="end-node">Destination</label>
+                            <select id="end-node">
+                                <option value="" disabled selected>Select...</option>
+                            </select>
+                        </div>
+                        <button type="button" id="show-route-btn" class="btn btn-primary">
+                            <i class="fa-solid fa-route"></i> Show Route
+                        </button>
+                        <button type="button" id="clear-route-btn" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-eraser"></i> Clear
+                        </button>
+                    </div>
+
+                    <!-- <p class="map-hint">
+                        <i class="fa-solid fa-route"></i>
+                        Routes follow the corridors of the drawn floor plan and never cut through a room.
+                    </p> -->
+
+                    <div class="map-wrapper">
+                        <div id="stage-wrap">
+                            <div id="stage"></div>
+                        </div>
+                    </div>
+<!-- 
+                    <div class="route-summary" id="route-summary"></div>
+
+                    <div class="guidance" id="turn-by-turn">
+                        <p class="guidance-placeholder">Select your current location and destination, then click "Show Route" to see turn-by-turn directions.</p>
+                    </div> -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/map.js"></script>
+</body>
+
+</html>
