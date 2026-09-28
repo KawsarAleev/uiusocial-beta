@@ -35,6 +35,9 @@
                 <a href="messages.html" class="nav-item active">
                     <i class="fa-regular fa-message"></i> Messages
                 </a>
+                <a href="map.html" class="nav-item">
+                    <i class="fa-solid fa-map-location-dot"></i> Campus Map
+                </a>
                 <a href="admin.html" class="nav-item">
                     <i class="fa-solid fa-shield-halved"></i> Admin Panel
                 </a>
@@ -49,10 +52,21 @@
         <div class="main-content">
 
             <div class="chat-list-pane">
-                <header class="top-header" style="height: 60px; padding: 0 16px; position: static;">
-                    <div class="search-bar" style="width: 100%;">
+                <header class="top-header" style="height: 60px; padding: 0 16px; position: static; gap: 12px;">
+                    <div class="search-bar" style="flex: 1; min-width: 0;">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="chat-search-input" placeholder="Search conversations...">
+                    </div>
+
+                    <div class="header-actions">
+                        <div class="header-icon">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="notification-badge"></span>
+                        </div>
+                        <div class="header-user">
+                            <img id="current-user-avatar" src="assets/images/students/default.png" alt="User Avatar"
+                                class="avatar">
+                        </div>
                     </div>
                 </header>
 
@@ -104,15 +118,6 @@
             </div>
 
             <div class="user-info-pane" id="user-info-pane" style="display: none;">
-                <header class="top-header"
-                    style="height: 70px; padding: 0 16px; justify-content: flex-end; position: static; background: transparent; border-bottom: none;">
-                    <div class="header-actions">
-                        <div class="header-icon"><i class="fa-regular fa-bell"></i></div>
-                        <img id="current-user-avatar" src="assets/images/students/default.png" alt="User" class="avatar"
-                            style="width: 32px; height: 32px; object-fit: cover;">
-                    </div>
-                </header>
-
                 <div class="info-header">
                     <img id="info-avatar" src="assets/images/students/default.png"
                         class="info-avatar user-profile-link" data-user-id="">

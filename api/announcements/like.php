@@ -8,9 +8,10 @@ $id = (int) ($data['announcement_id'] ?? 0);
 $me = getCurrentUserId();
 $db = getDB();
 
-$exists = $db->prepare("SELECT id FROM announcements WHERE id = ?");
+$exists = $db->prepare("SELECT id, created_by, club_id, title FROM announcements WHERE id = ?");
 $exists->execute([$id]);
-if (!$exists->fetch()) jsonResponse(['error' => 'Not found'], 404);
+$announcement = $exists->fetch();
+if (!$announcement) jsonResponse(['error' => 'Not found'], 404);
 
 $check = $db->prepare("SELECT id FROM announcement_likes WHERE announcement_id = ? AND user_id = ?");
 $check->execute([$id, $me]);
@@ -20,6 +21,12 @@ if ($row = $check->fetch()) {
 } else {
     $db->prepare("INSERT INTO announcement_likes (announcement_id, user_id) VALUES (?, ?)")->execute([$id, $me]);
     $status = 'liked';
+    notifyActivity('like_announcement', $me, [$announcement['created_by']], [
+        'post_id' => (int) $id,
+        'club_id' => $announcement['club_id'] ?? 0,
+        'snippet' => $announcement['title'] ?? '',
+        'item_name' => 'your announcement',
+    ]);
 }
 $cnt = $db->prepare("SELECT COUNT(*) c FROM announcement_likes WHERE announcement_id = ?");
 $cnt->execute([$id]);

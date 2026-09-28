@@ -75,7 +75,7 @@ try {
     $stmt = $db->prepare("INSERT INTO verification_queue (user_id, requested_role, status) VALUES (?, ?, 'pending')");
     $stmt->execute([$user_id, ucfirst($role)]);
 
-    notifyAdmins('join_request', 'New joining request', "$name requested to join as $role.", 'admin.html');
+    notifyActivity('join_request', 0, adminIds(), ['actor_name' => $name, 'requested_role' => $role]);
 
     $_SESSION['user_id'] = $user_id;
 

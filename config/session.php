@@ -60,12 +60,30 @@ function jsonResponse($data, $code = 200) {
     exit;
 }
 
+// Database clock, used so relative times match stored timestamps
+function dbNow() {
+    static $now = null;
+    if ($now === null) {
+        try {
+            $now = getDB()->query('SELECT NOW() n')->fetch()['n'];
+        } catch (Exception $e) {
+            $now = date('Y-m-d H:i:s');
+        }
+    }
+    return $now;
+}
+
 // Time ago helper
 function timeAgo($datetime) {
-    $now = new DateTime();
-    $ago = new DateTime($datetime);
+    if (!$datetime) return '';
+    try {
+        $now = new DateTime(dbNow());
+        $ago = new DateTime($datetime);
+    } catch (Exception $e) {
+        return '';
+    }
     $diff = $now->diff($ago);
-    
+
     if ($diff->y > 0) return $diff->y . 'y ago';
     if ($diff->m > 0) return $diff->m . 'mo ago';
     if ($diff->d > 0) return $diff->d . 'd ago';

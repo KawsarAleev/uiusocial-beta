@@ -116,6 +116,7 @@ async function renderPosts(filterKeyword = "") {
         postsContainer.innerHTML = posts.length ? '' : '<div class="text-center text-muted p-4">No posts yet. Be the first to post!</div>';
         posts.forEach(post => postsContainer.insertAdjacentHTML('beforeend', postCardHTML(post)));
         bindPostInteractions(postsContainer);
+        if (typeof scrollToHashTarget === 'function') scrollToHashTarget();
     } catch (e) {
         console.error("Error loading posts:", e);
         postsContainer.innerHTML = '<div class="text-center text-muted">Failed to load posts.</div>';

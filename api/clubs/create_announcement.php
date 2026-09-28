@@ -15,6 +15,17 @@ $content = trim($_POST['content'] ?? '');
 if ($title === '' || $content === '') jsonResponse(['error' => 'Title and content are required'], 400);
 
 $db = getDB();
+$me = getCurrentUserId();
 $stmt = $db->prepare("INSERT INTO announcements (title, content, created_by, club_id) VALUES (?, ?, ?, ?)");
-$stmt->execute([$title, $content, getCurrentUserId(), $clubId]);
-jsonResponse(['success' => true, 'announcement_id' => $db->lastInsertId()], 201);
+$stmt->execute([$title, $content, $me, $clubId]);
+$announcementId = (int) $db->lastInsertId();
+
+$club = $db->prepare("SELECT name FROM clubs WHERE id = ?");
+$club->execute([$clubId]);
+notifyActivity('new_announcement', $me, clubMemberIds($clubId), [
+    'club_id' => $clubId,
+    'club_name' => $club->fetch()['name'] ?? 'your club',
+    'snippet' => $title,
+]);
+
+jsonResponse(['success' => true, 'announcement_id' => $announcementId], 201);

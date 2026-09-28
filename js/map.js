@@ -849,7 +849,8 @@
      * 10. Boot
      * ------------------------------------------------------------------ */
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (typeof initApp === 'function') initApp();
         buildPlan();
         net = buildNetwork();
         buildLocations();

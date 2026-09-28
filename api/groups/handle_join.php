@@ -23,11 +23,14 @@ $g = $db->prepare("SELECT name FROM groups_table WHERE id = ?");
 $g->execute([$groupId]);
 $groupName = $g->fetch()['name'] ?? 'the group';
 
+$ctx = ['group_id' => $groupId, 'group_name' => $groupName];
+
 if ($action === 'accept') {
     $db->prepare("UPDATE group_members SET role = 'member' WHERE group_id = ? AND user_id = ?")->execute([$groupId, $userId]);
-    notifyUser($userId, 'group_join', 'Join request accepted', "You are now a member of $groupName.", 'group_detail.html?id=' . $groupId);
+    notifyActivity('group_join_approved', getCurrentUserId(), [$userId], $ctx);
     jsonResponse(['success' => true, 'status' => 'member']);
 }
 
 $db->prepare("DELETE FROM group_members WHERE group_id = ? AND user_id = ?")->execute([$groupId, $userId]);
+notifyActivity('group_join_rejected', getCurrentUserId(), [$userId], $ctx);
 jsonResponse(['success' => true, 'status' => 'declined']);

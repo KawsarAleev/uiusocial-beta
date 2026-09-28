@@ -9,4 +9,5 @@ $me = getCurrentUserId();
 if (!$target) jsonResponse(['error' => 'User ID required'], 400);
 $db = getDB();
 $db->prepare("DELETE FROM connections WHERE (user_id = ? AND connected_user_id = ?) OR (user_id = ? AND connected_user_id = ?)")->execute([$me, $target, $target, $me]);
+notifyActivity('connection_removed', $me, [$target]);
 jsonResponse(['success' => true, 'message' => 'Connection removed']);

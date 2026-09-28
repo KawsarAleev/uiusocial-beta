@@ -32,4 +32,15 @@ $stmt = $db->prepare("INSERT INTO club_posts (club_id, user_id, content) VALUES 
 $stmt->execute([$clubId, $me, $content]);
 
 $postId = (int) $db->lastInsertId();
+
+$club = $db->prepare("SELECT name FROM clubs WHERE id = ?");
+$club->execute([$clubId]);
+$clubName = $club->fetch()['name'] ?? 'your club';
+notifyActivity('new_club_post', $me, clubMemberIds($clubId), [
+    'club_id' => $clubId,
+    'post_id' => $postId,
+    'club_name' => $clubName,
+    'snippet' => $content,
+]);
+
 jsonResponse(['success' => true, 'message' => 'Post created', 'post_id' => $postId], 201);

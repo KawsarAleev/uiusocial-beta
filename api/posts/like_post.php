@@ -17,9 +17,10 @@ $user_id = getCurrentUserId();
 
 try {
     $db = getDB();
-    $checkPost = $db->prepare("SELECT id FROM posts WHERE id = ?");
+    $checkPost = $db->prepare("SELECT id, user_id, group_id, content FROM posts WHERE id = ?");
     $checkPost->execute([$post_id]);
-    if (!$checkPost->fetch()) {
+    $post = $checkPost->fetch();
+    if (!$post) {
         jsonResponse(['error' => 'Post not found'], 404);
     }
 
@@ -33,6 +34,12 @@ try {
     } else {
         $db->prepare("INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)")->execute([$post_id, $user_id]);
         $status = 'liked';
+        notifyActivity('like_post', $user_id, [$post['user_id']], [
+            'post_id' => $post_id,
+            'group_id' => $post['group_id'] ?? 0,
+            'snippet' => $post['content'] ?? '',
+            'item_name' => ($post['group_id'] ?? null) ? 'your group post' : 'your post',
+        ]);
     }
 
     $countStmt = $db->prepare("SELECT COUNT(*) as count FROM post_likes WHERE post_id = ?");

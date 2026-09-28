@@ -27,5 +27,5 @@ if (!$stmt->fetch()) {
 $stmt = $db->prepare("INSERT INTO reports (post_id, reported_by, reason, reason_label, details, status) VALUES (?, ?, ?, ?, ?, 'pending')");
 $stmt->execute([$postId, getCurrentUserId(), $reason, $reasonLabel, $details ?: null]);
 
-notifyAdmins('report', 'New post report', "A post was reported for $reasonLabel.", 'admin.html');
+notifyActivity('report', getCurrentUserId(), adminIds(), ['reason' => $reasonLabel]);
 jsonResponse(['success' => true, 'message' => 'Report submitted']);

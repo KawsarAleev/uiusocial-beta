@@ -26,5 +26,5 @@ if ($row = $check->fetch()) {
 }
 
 $db->prepare("INSERT INTO connections (user_id, connected_user_id, status) VALUES (?, ?, 'pending')")->execute([$me, $target]);
-notifyUser($target, 'connection', 'New connection request', 'Someone wants to connect with you.', 'index.html');
+notifyActivity('connection_request', $me, [$target]);
 jsonResponse(['success' => true, 'status' => 'sent']);

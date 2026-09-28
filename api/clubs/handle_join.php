@@ -36,13 +36,13 @@ if ($action === 'approve') {
     $club = $db->prepare("SELECT name FROM clubs WHERE id = ?");
     $club->execute([$clubId]);
     $clubName = $club->fetch()['name'] ?? 'the club';
-    notifyUser($userId, 'club_join_approved', 'Join request approved', 'Your request to join ' . $clubName . ' has been approved.', 'club_detail.html?id=' . $clubId);
+    notifyActivity('club_join_approved', $me, [$userId], ['club_id' => $clubId, 'club_name' => $clubName]);
     jsonResponse(['success' => true, 'status' => 'approved']);
 } else {
     $db->prepare("DELETE FROM club_members WHERE club_id = ? AND user_id = ?")->execute([$clubId, $userId]);
     $club = $db->prepare("SELECT name FROM clubs WHERE id = ?");
     $club->execute([$clubId]);
     $clubName = $club->fetch()['name'] ?? 'the club';
-    notifyUser($userId, 'club_join_rejected', 'Join request declined', 'Your request to join ' . $clubName . ' has been declined.', 'club_detail.html?id=' . $clubId);
+    notifyActivity('club_join_rejected', $me, [$userId], ['club_id' => $clubId, 'club_name' => $clubName]);
     jsonResponse(['success' => true, 'status' => 'rejected']);
 }

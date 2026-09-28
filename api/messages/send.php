@@ -16,4 +16,8 @@ if ($block->fetch()) jsonResponse(['error' => 'This conversation is blocked'], 4
 
 $stmt = $db->prepare("INSERT INTO messages (sender_id, receiver_id, content, message_type) VALUES (?, ?, ?, 'text')");
 $stmt->execute([$me, $to, $content]);
-jsonResponse(['success' => true, 'message_id' => $db->lastInsertId()], 201);
+$messageId = $db->lastInsertId();
+
+notifyActivity('message', $me, [$to], ['snippet' => $content]);
+
+jsonResponse(['success' => true, 'message_id' => $messageId], 201);

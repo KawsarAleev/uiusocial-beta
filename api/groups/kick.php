@@ -22,4 +22,12 @@ if ($group && (int) $group['created_by'] === $userId && !isAdmin()) {
 }
 
 $db->prepare("DELETE FROM group_members WHERE group_id = ? AND user_id = ?")->execute([$groupId, $userId]);
+
+$nameStmt = $db->prepare("SELECT name FROM groups_table WHERE id = ?");
+$nameStmt->execute([$groupId]);
+notifyActivity('group_removed', getCurrentUserId(), [$userId], [
+    'group_id' => $groupId,
+    'group_name' => $nameStmt->fetch()['name'] ?? 'the group',
+]);
+
 jsonResponse(['success' => true]);

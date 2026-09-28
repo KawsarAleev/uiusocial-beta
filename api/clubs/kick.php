@@ -31,4 +31,11 @@ if (in_array($row['role'], ['owner', 'admin'])) jsonResponse(['error' => 'Cannot
 $db->prepare("DELETE FROM club_members WHERE club_id = ? AND user_id = ?")->execute([$clubId, $userId]);
 $db->prepare("UPDATE clubs SET members_count = GREATEST(members_count - 1, 0) WHERE id = ?")->execute([$clubId]);
 
+$club = $db->prepare("SELECT name FROM clubs WHERE id = ?");
+$club->execute([$clubId]);
+notifyActivity('club_removed', $me, [$userId], [
+    'club_id' => $clubId,
+    'club_name' => $club->fetch()['name'] ?? 'the club',
+]);
+
 jsonResponse(['success' => true]);

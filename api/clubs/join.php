@@ -24,7 +24,7 @@ if ($row = $check->fetch()) {
 
 // Insert as 'requested' for approval
 $db->prepare("INSERT INTO club_members (club_id, user_id, role) VALUES (?, ?, 'requested')")->execute([$clubId, $me]);
-$user = getCurrentUser();
-notifyUser($club['owner_id'], 'club_join', 'Club join request', $user['name'] . ' requested to join ' . $club['name'] . '.', 'club_detail.html?id=' . $clubId);
-notifyAdmins('club_join', 'Club join request', $user['name'] . ' requested to join ' . $club['name'] . '.', 'club_detail.html?id=' . $clubId);
+$ctx = ['club_id' => $clubId, 'club_name' => $club['name']];
+notifyActivity('club_join_request', $me, [$club['owner_id']], $ctx);
+notifyActivity('club_join_request', $me, adminIds(), $ctx);
 jsonResponse(['success' => true, 'status' => 'requested']);

@@ -36,8 +36,16 @@ try {
 
     $stmt = $db->prepare("INSERT INTO posts (user_id, content, image, group_id) VALUES (?, ?, ?, ?)");
     $stmt->execute([$current_user_id, $content, $imagePath, $groupId]);
+    $postId = (int) $db->lastInsertId();
 
-    jsonResponse(['success' => true, 'message' => 'Post created successfully', 'post_id' => $db->lastInsertId()], 201);
+    $audience = $groupId ? groupMemberIds($groupId) : followerIds($current_user_id);
+    notifyActivity('new_post', $current_user_id, $audience, [
+        'post_id' => $postId,
+        'group_id' => $groupId,
+        'snippet' => $content,
+    ]);
+
+    jsonResponse(['success' => true, 'message' => 'Post created successfully', 'post_id' => $postId], 201);
 } catch (PDOException $e) {
     error_log($e->getMessage());
     jsonResponse(['error' => 'Database error'], 500);

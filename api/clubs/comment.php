@@ -17,9 +17,10 @@ if ($content === '') jsonResponse(['error' => 'Content required'], 400);
 
 $db = getDB();
 
-$checkPost = $db->prepare("SELECT id FROM club_posts WHERE id = ?");
+$checkPost = $db->prepare("SELECT cp.id, cp.user_id, cp.club_id FROM club_posts cp WHERE cp.id = ?");
 $checkPost->execute([$postId]);
-if (!$checkPost->fetch()) jsonResponse(['error' => 'Post not found'], 404);
+$post = $checkPost->fetch();
+if (!$post) jsonResponse(['error' => 'Post not found'], 404);
 
 $stmt = $db->prepare("INSERT INTO club_post_comments (post_id, user_id, content) VALUES (?, ?, ?)");
 $stmt->execute([$postId, $me, $content]);
@@ -27,6 +28,12 @@ $stmt->execute([$postId, $me, $content]);
 $commentId = (int) $db->lastInsertId();
 
 $db->prepare("UPDATE club_posts SET comments_count = comments_count + 1 WHERE id = ?")->execute([$postId]);
+
+notifyActivity('comment_club_post', $me, [$post['user_id']], [
+    'post_id' => $postId,
+    'club_id' => (int) $post['club_id'],
+    'snippet' => $content,
+]);
 
     $commentStmt = $db->prepare("SELECT c.id, c.content, c.created_at, u.id as author_id, u.name as author, u.avatar
                          FROM club_post_comments c JOIN users u ON c.user_id = u.id WHERE c.id = ?");

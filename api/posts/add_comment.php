@@ -23,18 +23,22 @@ if ($content === '') {
 
 try {
     $db = getDB();
-    $checkPost = $db->prepare("SELECT id FROM posts WHERE id = ?");
+    $checkPost = $db->prepare("SELECT id, user_id, group_id, content FROM posts WHERE id = ?");
     $checkPost->execute([$post_id]);
-    if (!$checkPost->fetch()) {
+    $post = $checkPost->fetch();
+    if (!$post) {
         jsonResponse(['error' => 'Post not found'], 404);
     }
 
+    $parentAuthorId = null;
     if ($parent_id) {
-        $p = $db->prepare("SELECT id FROM comments WHERE id = ? AND post_id = ?");
+        $p = $db->prepare("SELECT id, user_id FROM comments WHERE id = ? AND post_id = ?");
         $p->execute([$parent_id, $post_id]);
-        if (!$p->fetch()) {
+        $parent = $p->fetch();
+        if (!$parent) {
             jsonResponse(['error' => 'Parent comment not found'], 404);
         }
+        $parentAuthorId = (int) $parent['user_id'];
     } else {
         $parent_id = null;
     }
@@ -42,6 +46,19 @@ try {
     $stmt = $db->prepare("INSERT INTO comments (post_id, user_id, content, parent_id) VALUES (?, ?, ?, ?)");
     $stmt->execute([$post_id, $user_id, $content, $parent_id]);
     $comment_id = $db->lastInsertId();
+
+    $linkCtx = [
+        'post_id' => $post_id,
+        'group_id' => $post['group_id'] ?? 0,
+        'snippet' => $content,
+        'item_name' => ($post['group_id'] ?? null) ? 'your group post' : 'your post',
+    ];
+
+    if ($parentAuthorId) {
+        notifyActivity('reply_comment', $user_id, [$parentAuthorId], $linkCtx);
+    } else {
+        notifyActivity('comment_post', $user_id, [$post['user_id']], $linkCtx);
+    }
 
     $newCommentStmt = $db->prepare("
         SELECT c.id, c.content as text, c.parent_id, c.created_at,

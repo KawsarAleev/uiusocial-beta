@@ -304,7 +304,7 @@ async function loadAnnouncementComments(annId, card) {
 function annCommentHTML(comment, nested = false) {
     const replies = (comment.replies || []).map(r => annCommentHTML(r, true)).join('');
     return `
-        <div class="comment-item ${nested ? 'comment-reply' : ''}" data-comment-id="${comment.id}">
+        <div class="comment-item ${nested ? 'comment-reply' : ''}" data-comment-id="${comment.id}" id="comment-${comment.id}">
             <img src="${mediaUrl(comment.avatar)}" alt="" class="avatar user-profile-link" data-user-id="${comment.author_id}" style="width:28px;height:28px;object-fit:cover;">
             <div class="comment-body" style="flex:1;">
                 <div class="fw-600 text-sm"><a href="profile.html?id=${comment.author_id}" class="user-profile-link" data-user-id="${comment.author_id}">${escapeHTML(comment.author)}</a></div>

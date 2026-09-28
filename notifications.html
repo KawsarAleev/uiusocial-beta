@@ -7,17 +7,30 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .notif-section-label {
+            padding: 12px 20px 6px; font-size: 12px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .04em; color: var(--text-light);
+            background: var(--bg-body);
+        }
         .notif-page-item {
-            display: flex; gap: 12px; padding: 16px 20px;
+            display: flex; gap: 12px; padding: 14px 20px; align-items: flex-start;
             border-bottom: 1px solid var(--border-color);
-            cursor: pointer; transition: background 0.15s;
+            cursor: pointer; transition: background 0.15s; text-decoration: none; color: inherit;
         }
         .notif-page-item:hover { background: var(--bg-body); }
         .notif-page-item.unread { background: #fff4ed; border-left: 3px solid var(--primary-color); }
-        .notif-page-item i { font-size: 20px; color: var(--primary-color); margin-top: 2px; }
-        .notif-page-item strong { font-size: 14px; }
-        .notif-page-item span { font-size: 13px; color: var(--text-muted); }
+        .notif-page-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .notif-page-body { flex: 1; min-width: 0; }
+        .notif-page-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .notif-page-top strong { font-size: 14px; }
+        .notif-page-item span { font-size: 13px; color: var(--text-muted); display: block; }
         .notif-page-item em { font-size: 12px; color: var(--text-light); font-style: normal; margin-top: 4px; display: block; }
+        .notif-page-delete {
+            border: none; background: none; color: var(--text-light); cursor: pointer;
+            font-size: 15px; padding: 4px 6px; border-radius: 6px; display: none;
+        }
+        .notif-page-item:hover .notif-page-delete { display: block; }
+        .notif-page-delete:hover { color: var(--danger-color); background: var(--bg-body); }
     </style>
 </head>
 <body>
@@ -30,22 +43,33 @@
                 <a href="club_hub.html" class="nav-item"><i class="fa-solid fa-puzzle-piece"></i> Club Hub</a>
                 <a href="events.html" class="nav-item"><i class="fa-regular fa-calendar"></i> Events</a>
                 <a href="messages.html" class="nav-item"><i class="fa-regular fa-message"></i> Messages</a>
+                <a href="map.html" class="nav-item"><i class="fa-solid fa-map-location-dot"></i> Campus Map</a>
                 <a href="admin.html" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Admin Panel</a>
             </nav>
             <div class="sidebar-footer"><a href="login.html" class="nav-item sign-out text-danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out</a></div>
         </aside>
         <main class="main-content">
             <header class="top-header">
-                <div class="search-bar" style="width:400px;"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Search notifications..."></div>
+                <div class="search-bar" style="width:400px;"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="notif-search-input" placeholder="Search notifications..."></div>
                 <div class="header-actions">
                     <div class="header-icon"><i class="fa-regular fa-bell"></i><span class="notification-badge"></span></div>
                     <div class="header-user"><img src="assets/images/students/kawsar.png?img=11" alt="User" class="avatar"></div>
                 </div>
             </header>
             <div class="page-content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div><h1 class="page-title">Notifications</h1></div>
-                    <button class="btn btn-outline" id="mark-all-read"><i class="fa-solid fa-check-double"></i> Mark all as read</button>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                    <div>
+                        <h1 class="page-title">Notifications</h1>
+                        <span class="text-muted text-sm" id="notif-unread-count">Loading...</span>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <select class="form-control" id="notif-filter" style="width:auto;">
+                            <option value="all">All</option>
+                            <option value="unread">Unread</option>
+                        </select>
+                        <button class="btn btn-outline" id="clear-all"><i class="fa-solid fa-trash"></i> Clear all</button>
+                        <button class="btn btn-primary" id="mark-all-read"><i class="fa-solid fa-check-double"></i> Mark all as read</button>
+                    </div>
                 </div>
                 <div class="card" id="notif-list" style="padding:0;">
                     <div class="text-center text-muted p-4">Loading...</div>

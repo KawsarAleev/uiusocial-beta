@@ -49,10 +49,10 @@ async function setupMessagesPage() {
 }
 
 function setCurrentUserAvatar() {
-    const avatarImg = document.getElementById('current-user-avatar');
-    if (avatarImg && window.currentUser?.avatar) {
-        avatarImg.src = mediaUrl(window.currentUser.avatar);
-    }
+    if (!window.currentUser?.avatar) return;
+    const src = mediaUrl(window.currentUser.avatar);
+    const avatarImg = document.getElementById('current-user-avatar') || document.querySelector('.header-user .avatar');
+    if (avatarImg) avatarImg.src = src;
 }
 
 function showEmptyState(show) {

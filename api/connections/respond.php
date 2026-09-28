@@ -20,9 +20,10 @@ if (!$row) jsonResponse(['error' => 'Request not found'], 404);
 
 if ($action === 'accept') {
     $db->prepare("UPDATE connections SET status = 'accepted' WHERE id = ?")->execute([$row['id']]);
-    notifyUser($fromId, 'connection', 'Connection accepted', 'Your connection request was accepted.', 'profile.html?id=' . $me);
+    notifyActivity('connection_accepted', $me, [$fromId]);
     jsonResponse(['success' => true, 'status' => 'connected']);
 }
 
 $db->prepare("DELETE FROM connections WHERE id = ?")->execute([$row['id']]);
+notifyActivity('connection_declined', $me, [$fromId]);
 jsonResponse(['success' => true, 'status' => 'declined']);

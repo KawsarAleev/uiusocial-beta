@@ -226,36 +226,6 @@ function openEditProfileModal() {
     });
 }
 
-async function setupNotifications() {
-    const icon = document.querySelector('.header-icon');
-    if (!icon || !currentUser) return;
-    try {
-        const data = await api('api/notifications/index.php');
-        let badge = icon.querySelector('.notification-badge');
-        if (!badge) {
-            badge = document.createElement('span');
-            badge.className = 'notification-badge';
-            icon.appendChild(badge);
-        }
-        badge.style.display = data.unread ? 'block' : 'none';
-        icon.addEventListener('click', (e) => {
-            e.stopPropagation();
-            let panel = document.getElementById('notif-panel');
-            if (panel) { panel.remove(); return; }
-            panel = document.createElement('div');
-            panel.id = 'notif-panel';
-            panel.className = 'notif-panel';
-            panel.innerHTML = data.notifications.length
-                ? data.notifications.map(n => `<a class="notif-item ${n.is_read ? '' : 'unread'}" href="${n.link || '#'}"><strong>${escapeHTML(n.title)}</strong><span>${escapeHTML(n.body || '')}</span><em>${escapeHTML(n.time)}</em></a>`).join('')
-                : '<div class="notif-item">No notifications yet.</div>';
-            icon.appendChild(panel);
-            fetch('api/notifications/index.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-            badge.style.display = 'none';
-        });
-        document.addEventListener('click', () => document.getElementById('notif-panel')?.remove());
-    } catch (e) {}
-}
-
 function setupGlobalProfileLinks() {
     document.body.addEventListener('click', (e) => {
         if (e.target.closest('.header-user, .header-user-dropdown, #notif-panel, .chat-list-pane')) return;
@@ -282,7 +252,7 @@ async function loadUsers() {
 function commentHTML(comment, nested = false) {
     const replies = (comment.replies || []).map(r => commentHTML(r, true)).join('');
     return `
-        <div class="comment-item ${nested ? 'comment-reply' : ''}" data-comment-id="${comment.id}">
+        <div class="comment-item ${nested ? 'comment-reply' : ''}" data-comment-id="${comment.id}" id="comment-${comment.id}">
             <img src="${mediaUrl(comment.avatar)}" alt="" class="avatar user-profile-link" data-user-id="${comment.author_id}" style="width:28px;height:28px;object-fit:cover;">
             <div class="comment-body" style="flex:1;">
                 <div class="fw-600 text-sm"><a href="profile.html?id=${comment.author_id}" class="user-profile-link" data-user-id="${comment.author_id}">${escapeHTML(comment.author)}</a></div>
@@ -699,7 +669,7 @@ function commentHTML(comment, nested = false) {
     const isOwner = currentUser && comment.author_id && String(comment.author_id) === String(currentUser.id);
     const editDelHTML = isOwner ? `<span class="text-sm text-muted" style="cursor:pointer;" title="Edit"><i class="fa-solid fa-pen"></i></span> <span class="text-sm text-danger" style="cursor:pointer;" title="Delete"><i class="fa-solid fa-trash"></i></span>` : '';
     return `
-        <div class="comment-item ${nested ? 'comment-reply' : ''}" data-comment-id="${comment.id}">
+        <div class="comment-item ${nested ? 'comment-reply' : ''}" data-comment-id="${comment.id}" id="comment-${comment.id}">
             <img src="${mediaUrl(comment.avatar)}" alt="" class="avatar user-profile-link" data-user-id="${comment.author_id}" style="width:28px;height:28px;object-fit:cover;">
             <div class="comment-body" style="flex:1;">
                 <div class="fw-600 text-sm"><a href="profile.html?id=${comment.author_id}" class="user-profile-link" data-user-id="${comment.author_id}">${escapeHTML(comment.author)}</a></div>
@@ -815,41 +785,125 @@ function bindPostInteractions(root = document) {
     });
 }
 
+function notificationIcon(n) {
+    const cls = n.icon || 'fa-solid fa-bell';
+    const color = n.color || 'var(--primary-color)';
+    return `<span class="notif-icon" style="--notif-color:${escapeHTML(color)}"><i class="${escapeHTML(cls)}"></i></span>`;
+}
+
+function notificationAvatar(n) {
+    if (!n.actor_avatar && !n.actor_name) return '';
+    return `<img class="notif-avatar" src="${mediaUrl(n.actor_avatar)}" alt="${escapeHTML(n.actor_name || '')}">`;
+}
+
+function notificationItemHTML(n) {
+    const link = n.link || '#';
+    return `<a class="notif-item ${n.is_read ? '' : 'unread'}" href="${escapeHTML(link)}" data-id="${n.id}">
+        ${notificationAvatar(n)}
+        <span class="notif-main">
+            <strong>${escapeHTML(n.title || '')}</strong>
+            <span class="notif-text">${escapeHTML(n.body || '')}</span>
+            <em>${escapeHTML(n.time || '')}</em>
+        </span>
+        ${notificationIcon(n)}
+    </a>`;
+}
+
 async function setupNotifications() {
     const icon = document.querySelector('.header-icon');
     if (!icon || !currentUser) return;
-    try {
-        const data = await api('api/notifications/index.php');
-        let badge = icon.querySelector('.notification-badge');
-        if (!badge) {
-            badge = document.createElement('span');
-            badge.className = 'notification-badge';
-            icon.appendChild(badge);
+
+    let badge = icon.querySelector('.notification-badge');
+    if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'notification-badge';
+        icon.appendChild(badge);
+    }
+
+    const paint = (unread) => {
+        badge.textContent = unread > 9 ? '9+' : (unread ? String(unread) : '');
+        badge.style.display = unread ? 'flex' : 'none';
+    };
+
+    const load = async () => {
+        try {
+            return await api('api/notifications/index.php?limit=15');
+        } catch (e) {
+            return { notifications: [], unread: 0 };
         }
-        badge.style.display = data.unread ? 'block' : 'none';
-        icon.addEventListener('click', (e) => {
-            e.stopPropagation();
-            let panel = document.getElementById('notif-panel');
-            if (panel) { panel.remove(); return; }
-            panel = document.createElement('div');
-            panel.id = 'notif-panel';
-            panel.className = 'notif-panel';
-            panel.innerHTML = data.notifications.length
-                ? data.notifications.map(n => `<a class="notif-item ${n.is_read ? '' : 'unread'}" href="${n.link || '#'}"><strong>${escapeHTML(n.title)}</strong><span>${escapeHTML(n.body || '')}</span><em>${escapeHTML(n.time)}</em></a>`).join('')
-                : '<div class="notif-item">No notifications yet.</div>';
-            icon.appendChild(panel);
-            fetch('api/notifications/index.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-            badge.style.display = 'none';
-        });
-        document.addEventListener('click', () => document.getElementById('notif-panel')?.remove());
-        // Poll every 60s
-        setInterval(async () => {
+    };
+
+    const refreshBadge = async () => {
+        const data = await load();
+        paint(data.unread);
+        return data;
+    };
+
+    paint(0);
+    refreshBadge();
+
+    const closePanel = () => document.getElementById('notif-panel')?.remove();
+
+    icon.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (document.getElementById('notif-panel')) { closePanel(); return; }
+
+        const data = await load();
+        const panel = document.createElement('div');
+        panel.id = 'notif-panel';
+        panel.className = 'notif-panel';
+        panel.innerHTML = `
+            <div class="notif-panel-head">
+                <strong>Notifications</strong>
+                <div>
+                    <button type="button" id="notif-mark-all">Mark all read</button>
+                    <a href="notifications.html">See all</a>
+                </div>
+            </div>
+            <div class="notif-panel-list">
+                ${data.notifications.length
+                    ? data.notifications.map(notificationItemHTML).join('')
+                    : '<div class="notif-empty"><i class="fa-solid fa-bell-slash"></i><p>No notifications yet</p></div>'}
+            </div>`;
+        icon.appendChild(panel);
+
+        panel.querySelector('#notif-mark-all')?.addEventListener('click', async (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
             try {
-                const d = await api('api/notifications/index.php');
-                badge.style.display = d.unread ? 'block' : 'none';
-            } catch (e) {}
-        }, 60000);
-    } catch (e) {}
+                await api('api/notifications/index.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: '{}'
+                });
+                panel.querySelectorAll('.notif-item').forEach(el => el.classList.remove('unread'));
+                paint(0);
+                toast('All notifications marked as read');
+            } catch (err) {}
+        });
+
+        panel.querySelectorAll('.notif-item').forEach(el => {
+            el.addEventListener('click', () => {
+                el.classList.remove('unread');
+                if (typeof scrollToHashTarget === 'function') setTimeout(scrollToHashTarget, 60);
+            });
+        });
+
+        api('api/notifications/index.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}'
+        }).catch(() => {});
+        paint(0);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#notif-panel') && !e.target.closest('.header-icon')) closePanel();
+    });
+
+    // Keep the badge live
+    setInterval(refreshBadge, 30000);
+    window.refreshNotificationBadge = refreshBadge;
 }
 
 // ─── initApp with new features ───────────────────────────
@@ -868,6 +922,7 @@ async function initApp() {
     setupMobileMenu();
     setupSearchShortcut();
     setupEscapeKey();
+    setupHashNavigation();
 }
 
 function setupMobileMenu() {
@@ -905,6 +960,31 @@ function setupSearchShortcut() {
             if (search) search.focus();
         }
     });
+}
+
+function scrollToHashTarget() {
+    const raw = decodeURIComponent(window.location.hash || '').replace(/^#/, '');
+    if (!raw) return false;
+    const safe = CSS.escape(raw);
+    const el = document.getElementById(raw) ||
+        document.querySelector(`[data-post-id="${safe}"]`) ||
+        document.querySelector(`[data-comment-id="${safe}"]`);
+    if (!el) return false;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('flash-highlight');
+    setTimeout(() => el.classList.remove('flash-highlight'), 2400);
+    return true;
+}
+
+function setupHashNavigation() {
+    window.addEventListener('hashchange', scrollToHashTarget);
+    if (!window.location.hash) return;
+    let tries = 0;
+    const tick = () => {
+        if (scrollToHashTarget() || ++tries > 24) return;
+        setTimeout(tick, 250);
+    };
+    setTimeout(tick, 250);
 }
 
 function setupEscapeKey() {

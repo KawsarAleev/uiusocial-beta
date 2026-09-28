@@ -29,15 +29,23 @@ if (!tableExists($db, 'notifications')) {
         CREATE TABLE notifications (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,
+            actor_id INT DEFAULT NULL,
             type VARCHAR(50) NOT NULL,
             title VARCHAR(200) NOT NULL,
             body TEXT DEFAULT NULL,
             link VARCHAR(255) DEFAULT NULL,
             is_read TINYINT(1) DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            INDEX idx_notif_user_read (user_id, is_read),
+            INDEX idx_notif_created (created_at),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL
         ) ENGINE=InnoDB
     ");
+} else {
+    ensureColumn($db, 'notifications', 'actor_id', "INT DEFAULT NULL");
+    try { $db->exec("ALTER TABLE notifications ADD INDEX idx_notif_user_read (user_id, is_read)"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE notifications ADD INDEX idx_notif_created (created_at)"); } catch (Exception $e) {}
 }
 
 if (!tableExists($db, 'verification_queue')) {
@@ -131,12 +139,15 @@ try {
 } catch (Exception $e) {}
 
 $db->exec("UPDATE users SET status = 'approved' WHERE status IS NULL OR status = ''");
-$db->exec("UPDATE clubs SET owner_id = 6 WHERE id = 1 AND owner_id IS NULL");
-$db->exec("UPDATE clubs SET owner_id = 2 WHERE id = 2 AND owner_id IS NULL");
-$db->exec("UPDATE clubs SET owner_id = 5 WHERE id = 3 AND owner_id IS NULL");
-$db->exec("UPDATE clubs SET owner_id = 4 WHERE id = 4 AND owner_id IS NULL");
-$db->exec("UPDATE clubs SET owner_id = 2 WHERE id = 5 AND owner_id IS NULL");
-$db->exec("UPDATE clubs SET owner_id = 5 WHERE id = 6 AND owner_id IS NULL");
+$clubOwnerMap = [1 => 6, 2 => 2, 3 => 5, 4 => 4, 5 => 2, 6 => 5];
+foreach ($clubOwnerMap as $clubId => $ownerId) {
+    try {
+        $exists = $db->prepare("SELECT 1 FROM users WHERE id = ?");
+        $exists->execute([$ownerId]);
+        if (!$exists->fetch()) continue;
+        $db->prepare("UPDATE clubs SET owner_id = ? WHERE id = ? AND owner_id IS NULL")->execute([$ownerId, $clubId]);
+    } catch (Exception $e) {}
+}
 
 $memberCount = $db->query("SELECT COUNT(*) AS c FROM group_members")->fetch()['c'];
 if ((int) $memberCount === 0) {

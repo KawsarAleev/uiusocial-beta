@@ -16,11 +16,11 @@ if (!$row) jsonResponse(['error' => 'Request not found'], 404);
 if ($action === 'accept') {
     $db->prepare("UPDATE verification_queue SET status = 'approved' WHERE id = ?")->execute([$id]);
     $db->prepare("UPDATE users SET status = 'approved' WHERE id = ?")->execute([$row['user_id']]);
-    notifyUser($row['user_id'], 'join', 'Joining request accepted', 'Welcome to UIU Social. Your account is now active.', 'index.html');
+    notifyActivity('join_approved', 0, [$row['user_id']]);
     jsonResponse(['success' => true, 'status' => 'approved']);
 }
 
 $db->prepare("UPDATE verification_queue SET status = 'rejected' WHERE id = ?")->execute([$id]);
 $db->prepare("UPDATE users SET status = 'rejected' WHERE id = ?")->execute([$row['user_id']]);
-notifyUser($row['user_id'], 'join', 'Joining request declined', 'Your joining request was not approved.', 'login.html');
+notifyActivity('join_rejected', 0, [$row['user_id']]);
 jsonResponse(['success' => true, 'status' => 'rejected']);

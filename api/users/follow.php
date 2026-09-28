@@ -12,5 +12,5 @@ $check = $db->prepare("SELECT id FROM follows WHERE follower_id = ? AND followin
 $check->execute([$me, $target]);
 if ($check->fetch()) jsonResponse(['success' => true, 'following' => true]);
 $db->prepare("INSERT INTO follows (follower_id, following_id) VALUES (?, ?)")->execute([$me, $target]);
-notifyUser($target, 'follow', 'New follower', 'You have a new follower.', 'profile.html?id=' . $target);
+notifyActivity('follow', $me, [$target]);
 jsonResponse(['success' => true, 'following' => true]);

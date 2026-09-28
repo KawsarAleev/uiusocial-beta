@@ -25,7 +25,7 @@ if ($row = $check->fetch()) {
 }
 
 $db->prepare("INSERT INTO group_members (group_id, user_id, role) VALUES (?, ?, 'requested')")->execute([$groupId, $me]);
-$user = getCurrentUser();
-notifyUser($group['created_by'], 'group_join', 'Group join request', $user['name'] . ' requested to join ' . $group['name'] . '.', 'group_detail.html?id=' . $groupId);
-notifyAdmins('group_join', 'Group join request', $user['name'] . ' requested to join ' . $group['name'] . '.', 'group_detail.html?id=' . $groupId);
+$ctx = ['group_id' => $groupId, 'group_name' => $group['name']];
+notifyActivity('group_join_request', $me, [$group['created_by']], $ctx);
+notifyActivity('group_join_request', $me, adminIds(), $ctx);
 jsonResponse(['success' => true, 'status' => 'requested']);
