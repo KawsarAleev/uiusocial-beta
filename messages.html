@@ -38,6 +38,7 @@
                 <a href="map.html" class="nav-item">
                     <i class="fa-solid fa-map-location-dot"></i> Campus Map
                 </a>
+<a href="podcasts.html" class="nav-item"><i class="fa-solid fa-headphones"></i> Podcasts</a>
                 <a href="admin.html" class="nav-item">
                     <i class="fa-solid fa-shield-halved"></i> Admin Panel
                 </a>
@@ -53,10 +54,10 @@
 
             <div class="chat-list-pane">
                 <header class="top-header" style="height: 60px; padding: 0 16px; position: static; gap: 12px;">
-                                    <div class="search-bar" style="flex: 1; min-width: 0;">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Search people, posts, groups, clubs, events...">
-                </div>
+                    <div class="search-bar" style="flex: 1; min-width: 0;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="chat-search-input" data-local-search placeholder="Search conversations...">
+                    </div>
 
                     <div class="header-actions">
                         <div class="header-icon">
@@ -64,7 +65,7 @@
                             <span class="notification-badge"></span>
                         </div>
                         <div class="header-user">
-                            <img src="assets/images/students/default.png" alt="User Avatar"
+                            <img id="current-user-avatar" src="assets/images/students/default.png" alt="User Avatar"
                                 class="avatar">
                         </div>
                     </div>
@@ -72,10 +73,11 @@
 
                 <div class="chat-list-header">
                     <h2>Messages</h2>
-                    <div class="search-bar" style="width: 100%; margin-top: 10px; padding: 6px 12px;">
+                    <!-- <div class="search-bar" style="width: 100%; margin-top: 10px; padding: 6px 12px;">
                         <i class="fa-solid fa-filter"></i>
                         <input type="text" id="chat-filter-input" placeholder="Filter conversations...">
                     </div>
+                    <div class="chat-connection-status" id="chat-connection-status"></div> -->
                 </div>
 
                 <div class="chat-items" id="chat-items-container">
@@ -104,13 +106,24 @@
                 </div>
 
                 <div class="chat-messages" id="chat-messages-container" style="display: none;">
+                    <div class="chat-load-older-wrap">
+                        <button type="button" class="btn btn-sm btn-outline chat-load-older" id="chat-load-older">
+                            Load earlier messages
+                        </button>
+                    </div>
                     <!-- Messages will be loaded dynamically -->
                 </div>
 
                 <div class="chat-input-area" id="chat-input-area" style="display: none;">
+                    <div class="chat-attachment-tray" id="chat-attachment-tray" hidden></div>
                     <div class="chat-input-actions">
-                        <i class="fa-solid fa-circle-plus"></i>
-                        <i class="fa-regular fa-image"></i>
+                        <i class="fa-solid fa-circle-plus" id="chat-attach-btn" role="button" tabindex="0"
+                           title="Attach a file" aria-label="Attach a file"></i>
+                        <i class="fa-regular fa-image" id="chat-attach-image-btn" role="button" tabindex="0"
+                           title="Attach an image" aria-label="Attach an image"></i>
+                        <input type="file" id="chat-file-input" hidden
+                            accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.txt,.csv">
+                        <input type="file" id="chat-image-input" hidden accept="image/jpeg,image/png,image/gif,image/webp">
                     </div>
                     <div class="chat-input-wrapper">
                         <input type="text" id="chat-input-field" class="chat-input" placeholder="Type your message...">

@@ -22,6 +22,185 @@ function isAdminUser() {
     return !!(currentUser && currentUser.is_admin);
 }
 
+const ADMIN_CONTENT_LABELS = {
+    post: 'post',
+    comment: 'comment',
+    club_post: 'club post',
+    club_comment: 'club comment',
+    announcement: 'announcement',
+    announcement_comment: 'announcement comment'
+};
+
+function adminDeleteModal(type, id, label, context) {
+    const existing = document.getElementById('uiu-admin-delete-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'uiu-admin-delete-modal';
+    overlay.className = 'uiu-modal-overlay';
+    overlay.innerHTML = `
+        <div class="uiu-modal-box admin-delete-box">
+            <h3><i class="fa-solid fa-shield-halved"></i> Admin action</h3>
+            <p>Remove this ${escapeHTML(ADMIN_CONTENT_LABELS[type] || 'item')}${context ? ' ' + escapeHTML(context) : ''}? The author is notified and the action is recorded in the audit log.</p>
+            <label class="admin-delete-label" for="adminDeleteReason">Reason (optional)</label>
+            <textarea class="form-control" id="adminDeleteReason" rows="3" placeholder="Spam, harassment, misinformation..."></textarea>
+            <div class="uiu-modal-actions mt-3">
+                <button type="button" class="btn btn-outline" id="adminDeleteCancel">Cancel</button>
+                <button type="button" class="btn btn-primary btn-admin-danger" id="adminDeleteConfirm">
+                    <i class="fa-solid fa-trash mr-2"></i>Delete
+                </button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+
+    const close = () => overlay.remove();
+    overlay.querySelector('#adminDeleteCancel').onclick = close;
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    overlay.querySelector('#adminDeleteConfirm').onclick = async () => {
+        const button = overlay.querySelector('#adminDeleteConfirm');
+        button.disabled = true;
+        try {
+            await api('api/admin/delete_content.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, id: Number(id), reason: overlay.querySelector('#adminDeleteReason').value.trim() })
+            });
+            close();
+            toast(label || 'Content deleted');
+            if (typeof window.reloadPosts === 'function') window.reloadPosts();
+        } catch (err) {
+            alert(err.message);
+            button.disabled = false;
+        }
+    };
+    overlay.querySelector('#adminDeleteReason').focus();
+}
+
+function adminDeleteContent(type, id, context) {
+    if (!isAdminUser()) return;
+    adminDeleteModal(type, id, null, context);
+}
+
+function adminContentRefresh(target) {
+    if (typeof window.reloadPosts === 'function') {
+        window.reloadPosts();
+        return;
+    }
+    const card = target?.closest('.post-card, .club-post-card, .announcement-card');
+    if (card) {
+        card.remove();
+        return;
+    }
+    target?.closest('.comment-item')?.remove();
+}
+
+function setupAdminContentTools() {
+    document.body.addEventListener('click', (e) => {
+        const postDelete = e.target.closest('.admin-del-post');
+        if (postDelete) {
+            e.preventDefault();
+            e.stopPropagation();
+            const card = postDelete.closest('.post-card');
+            adminDeleteContent('post', card?.dataset.id, 'posted by ' + (card?.querySelector('.post-author a')?.textContent || 'another member'));
+            return;
+        }
+
+        const clubPostDelete = e.target.closest('.admin-del-club-post, .del-club-post');
+        if (clubPostDelete) {
+            e.preventDefault();
+            e.stopPropagation();
+            const postId = clubPostDelete.dataset.id;
+            if (clubPostDelete.classList.contains('admin-del-club-post')) {
+                adminDeleteContent('club_post', postId, 'posted in a club');
+                return;
+            }
+            showModal('Delete Club Post?', 'Are you sure you want to delete this club post?', async () => {
+                try {
+                    await api('api/clubs/delete_post.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ post_id: Number(postId) })
+                    });
+                    toast('Club post deleted');
+                    clubPostDelete.closest('.club-post-card')?.remove();
+                } catch (err) { alert(err.message); }
+            });
+            return;
+        }
+
+        const clubCommentDelete = e.target.closest('.admin-del-club-comment, .del-club-comment');
+        if (clubCommentDelete) {
+            e.preventDefault();
+            e.stopPropagation();
+            const commentId = clubCommentDelete.dataset.id;
+            if (clubCommentDelete.classList.contains('admin-del-club-comment')) {
+                adminDeleteContent('club_comment', commentId, 'commented on a club post');
+                return;
+            }
+            showModal('Delete Comment?', 'Are you sure you want to delete this comment?', async () => {
+                try {
+                    await api('api/clubs/delete_comment.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ comment_id: Number(commentId) })
+                    });
+                    toast('Comment deleted');
+                    clubCommentDelete.closest('.comment-item')?.remove();
+                } catch (err) { alert(err.message); }
+            });
+            return;
+        }
+
+        const annDelete = e.target.closest('.admin-del-announcement');
+        if (annDelete) {
+            e.preventDefault();
+            e.stopPropagation();
+            adminDeleteContent('announcement', annDelete.dataset.id, 'posted as an announcement');
+            return;
+        }
+
+        const annCommentDelete = e.target.closest('.admin-del-ann-comment');
+        if (annCommentDelete) {
+            e.preventDefault();
+            e.stopPropagation();
+            adminDeleteContent('announcement_comment', annCommentDelete.dataset.id, 'commented on an announcement');
+            return;
+        }
+
+        const commentDelete = e.target.closest('.btn-admin-del-comment');
+        if (commentDelete) {
+            e.preventDefault();
+            e.stopPropagation();
+            const item = commentDelete.closest('.comment-item');
+            adminDeleteContent('comment', item?.dataset.commentId, 'commented on a post');
+            return;
+        }
+
+        const ownCommentDelete = e.target.closest('.btn-del-comment, .btn-del-ann-comment');
+        if (ownCommentDelete) {
+            e.preventDefault();
+            e.stopPropagation();
+            const isAnnouncement = ownCommentDelete.classList.contains('btn-del-ann-comment');
+            const commentId = isAnnouncement
+                ? ownCommentDelete.dataset.id
+                : ownCommentDelete.closest('.comment-item')?.dataset.commentId;
+            if (!commentId) return;
+            showModal('Delete Comment?', 'Are you sure you want to delete this comment?', async () => {
+                try {
+                    await api(isAnnouncement ? 'api/announcements/delete_comment.php' : 'api/posts/delete_comment.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ comment_id: Number(commentId) })
+                    });
+                    toast('Comment deleted');
+                    if (isAnnouncement) location.reload();
+                    else adminContentRefresh(ownCommentDelete);
+                } catch (err) { alert(err.message); }
+            });
+        }
+    });
+}
+
 function isPendingUser() {
     return !!(currentUser && currentUser.is_pending);
 }
@@ -446,6 +625,8 @@ window.mediaUrl = mediaUrl;
 window.escapeHTML = escapeHTML;
 window.canAct = canAct;
 window.guardAction = guardAction;
+window.adminDeleteContent = adminDeleteContent;
+window.setupAdminContentTools = setupAdminContentTools;
 window.showModal = showModal;
 window.toast = toast;
 window.api = api;
@@ -559,8 +740,13 @@ function postCardHTML(post, extra = '', options = {}) {
     const shareBtn = canAct() ? `<span class="post-stat btn-share" style="cursor:pointer;" title="Share"><i class="fa-solid fa-share-nodes"></i></span>` : '';
     const saveBtn = canAct() ? `<span class="post-stat btn-save ${post.saved ? 'text-primary' : ''}" style="cursor:pointer;" title="Save"><i class="${post.saved ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i></span>` : '';
     const isOwner = currentUser && post.author_id && String(post.author_id) === String(currentUser.id);
+    const isAdmin = isAdminUser();
     const showOwnerDelete = options.showOwnerDelete !== false;
-    const editDelHTML = isOwner ? `<span class="post-stat btn-edit-post" style="cursor:pointer;" title="Edit"><i class="fa-solid fa-pen"></i></span>${showOwnerDelete ? '<span class="post-stat btn-del-post" style="cursor:pointer;color:var(--danger-color);" title="Delete"><i class="fa-solid fa-trash"></i></span>' : ''}` : '';
+    const ownerTools = isOwner ? `<span class="post-stat btn-edit-post" style="cursor:pointer;" title="Edit"><i class="fa-solid fa-pen"></i></span>${showOwnerDelete ? '<span class="post-stat btn-del-post" style="cursor:pointer;color:var(--danger-color);" title="Delete"><i class="fa-solid fa-trash"></i></span>' : ''}` : '';
+    const adminTool = (isAdmin && !isOwner)
+        ? `<span class="post-stat admin-del-post" style="cursor:pointer;" title="Delete as administrator"><i class="fa-solid fa-shield-halved"></i> <i class="fa-solid fa-trash"></i></span>`
+        : '';
+    const reportTool = isAdmin ? '' : '<i class="fa-solid fa-flag text-muted action-flag" title="Report this post"></i>';
     return `
         <div class="card post-card mb-3" data-id="${post.id}" data-content="${escapeHTML(post.content || '')}" id="post-${post.id}">
             <div class="post-header justify-content-between d-flex">
@@ -576,8 +762,9 @@ function postCardHTML(post, extra = '', options = {}) {
                 </div>
                 <div class="d-flex gap-2">
                     ${extra}
-                    ${editDelHTML}
-                    <i class="fa-solid fa-flag text-muted action-flag" title="Report this post"></i>
+                    ${ownerTools}
+                    ${adminTool}
+                    ${reportTool}
                 </div>
             </div>
             <div class="post-content mt-2">
@@ -667,12 +854,18 @@ function openEditPostModal(postId, currentContent = '') {
 function commentHTML(comment, nested = false) {
     const replies = (comment.replies || []).map(r => commentHTML(r, true)).join('');
     const isOwner = currentUser && comment.author_id && String(comment.author_id) === String(currentUser.id);
-    const editDelHTML = isOwner ? `<span class="text-sm text-muted" style="cursor:pointer;" title="Edit"><i class="fa-solid fa-pen"></i></span> <span class="text-sm text-danger" style="cursor:pointer;" title="Delete"><i class="fa-solid fa-trash"></i></span>` : '';
+    const isAdmin = isAdminUser() && !isOwner;
+    const tools = [
+        isOwner ? '<span class="comment-action btn-edit-comment" title="Edit comment"><i class="fa-solid fa-pen"></i></span>' : '',
+        isOwner ? '<span class="comment-action btn-del-comment" title="Delete comment"><i class="fa-solid fa-trash"></i></span>' : '',
+        isAdmin ? `<span class="comment-action btn-admin-del-comment" title="Delete as administrator"><i class="fa-solid fa-shield-halved"></i></span>` : ''
+    ].filter(Boolean).join('');
+    const toolsHTML = tools ? `<div class="comment-tools">${tools}</div>` : '';
     return `
-        <div class="comment-item ${nested ? 'comment-reply' : ''}" data-comment-id="${comment.id}" id="comment-${comment.id}">
+        <div class="comment-item ${nested ? 'comment-reply' : ''}" data-comment-id="${comment.id}" data-author-id="${comment.author_id || 0}" id="comment-${comment.id}">
             <img src="${mediaUrl(comment.avatar)}" alt="" class="avatar user-profile-link" data-user-id="${comment.author_id}" style="width:28px;height:28px;object-fit:cover;">
             <div class="comment-body" style="flex:1;">
-                <div class="fw-600 text-sm"><a href="profile.html?id=${comment.author_id}" class="user-profile-link" data-user-id="${comment.author_id}">${escapeHTML(comment.author)}</a></div>
+                <div class="fw-600 text-sm"><a href="profile.html?id=${comment.author_id}" class="user-profile-link" data-user-id="${comment.author_id}">${escapeHTML(comment.author)}</a>${toolsHTML}</div>
                 <div class="text-sm">${escapeHTML(comment.text || comment.content)}</div>
                 <button type="button" class="btn-reply-comment text-primary text-sm" data-parent-id="${comment.id}" style="background:none;border:none;padding:0;margin-top:4px;">Reply</button>
                 <div class="reply-box" style="display:none;margin-top:8px;">
@@ -920,6 +1113,7 @@ async function initApp() {
     setupGlobalSearch();
     setupGlobalProfileLinks();
     setupReportModal();
+    setupAdminContentTools();
     setupMobileMenu();
     setupSearchShortcut();
     setupEscapeKey();

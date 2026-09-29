@@ -1,0 +1,23 @@
+# Private chat attachments.
+#
+# These files belong to 1-on-1 conversations and must only ever be reached
+# through api/messages/attachment.php, which verifies that the requester is a
+# participant in that conversation. Direct requests are denied here as well,
+# so a leaked or guessed URL still cannot be opened by a third party.
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
+
+# Never let a stray upload be executed if the rules above are ever ignored.
+php_flag engine off
+AddType text/plain .php .phtml .php3 .php4 .php5 .phps .pl .py .cgi .asp .jsp
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>

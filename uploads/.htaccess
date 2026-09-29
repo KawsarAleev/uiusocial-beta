@@ -1,4 +1,20 @@
-Options -Indexes
-<FilesMatch "\.(php|phtml|php3|php4|php5|phar)$">
-  Require all denied
+# Block PHP execution anywhere under uploads/ as a safety net.
+# Post images, avatars, covers and private chat attachments are data only and
+# must never be interpreted as code, whatever their extension.
+
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>
+
+<FilesMatch "\.(?i:php|phtml|php3|php4|php5|php7|phps|phar|pl|py|cgi|asp|aspx|jsp|sh|exe|cgi)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </FilesMatch>

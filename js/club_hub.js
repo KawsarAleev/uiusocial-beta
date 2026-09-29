@@ -178,6 +178,7 @@ function renderClubsGrid() {
 async function loadLatestAnnouncements() {
     const container = document.querySelector('.announcements-feed');
     if (!container) return;
+    const isAdmin = isAdminUser();
     try {
         const data = await api('api/announcements/list.php');
         const items = data.announcements || [];
@@ -186,10 +187,11 @@ async function loadLatestAnnouncements() {
             <div class="card announcement-card mb-3" data-id="${a.id}">
                 <div class="announcement-header d-flex gap-2">
                     <img src="${mediaUrl(a.club_image || 'assets/images/clubs/default.png')}" alt="" class="avatar" style="width:40px;height:40px;object-fit:cover;border-radius:8px;">
-                    <div>
+                    <div style="flex:1;">
                         <div class="fw-600 text-sm">${escapeHTML(a.club_name || 'UIU Social')}</div>
                         <div class="text-muted text-sm">${escapeHTML(a.time || '')}</div>
                     </div>
+                    ${isAdmin ? `<span class="admin-del-announcement post-stat" data-id="${a.id}" title="Delete as administrator" style="cursor:pointer;"><i class="fa-solid fa-shield-halved"></i> <i class="fa-solid fa-trash"></i></span>` : ''}
                 </div>
                 <div class="announcement-content mt-2">
                     <p class="m-0">${escapeHTML(a.content)}</p>
@@ -303,11 +305,17 @@ async function loadAnnouncementComments(annId, card) {
 
 function annCommentHTML(comment, nested = false) {
     const replies = (comment.replies || []).map(r => annCommentHTML(r, true)).join('');
+    const isOwner = currentUser && comment.author_id && String(comment.author_id) === String(currentUser.id);
+    const isAdmin = isAdminUser() && !isOwner;
+    const tools = [
+        isOwner ? `<span class="comment-action btn-del-ann-comment" data-id="${comment.id}" title="Delete comment"><i class="fa-solid fa-trash"></i></span>` : '',
+        isAdmin ? `<span class="comment-action admin-del-ann-comment" data-id="${comment.id}" title="Delete as administrator"><i class="fa-solid fa-shield-halved"></i></span>` : ''
+    ].filter(Boolean).join('');
     return `
         <div class="comment-item ${nested ? 'comment-reply' : ''}" data-comment-id="${comment.id}" id="comment-${comment.id}">
             <img src="${mediaUrl(comment.avatar)}" alt="" class="avatar user-profile-link" data-user-id="${comment.author_id}" style="width:28px;height:28px;object-fit:cover;">
             <div class="comment-body" style="flex:1;">
-                <div class="fw-600 text-sm"><a href="profile.html?id=${comment.author_id}" class="user-profile-link" data-user-id="${comment.author_id}">${escapeHTML(comment.author)}</a></div>
+                <div class="fw-600 text-sm"><a href="profile.html?id=${comment.author_id}" class="user-profile-link" data-user-id="${comment.author_id}">${escapeHTML(comment.author)}</a>${tools ? `<span class="comment-tools">${tools}</span>` : ''}</div>
                 <div class="text-sm">${escapeHTML(comment.text || comment.content)}</div>
                 <button type="button" class="btn-reply-comment text-primary text-sm" data-parent-id="${comment.id}" style="background:none;border:none;padding:0;margin-top:4px;">Reply</button>
                 <div class="reply-box" style="display:none;margin-top:8px;">

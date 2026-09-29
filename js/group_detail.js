@@ -160,8 +160,8 @@ async function renderGroupPosts() {
         container.innerHTML = '';
         posts.forEach(post => {
             let extra = '';
-            // If current user is manager, they can delete the post
-            if (currentGroup.is_manager) {
+            // Group managers get their own delete; admins use the shield action from postCardHTML
+            if (currentGroup.is_manager && !isAdminUser()) {
                 extra = `<i class="fa-solid fa-trash text-danger" style="cursor:pointer;" title="Delete Post" onclick="deleteGroupPost(${post.id})"></i>`;
             }
             container.insertAdjacentHTML('beforeend', postCardHTML(post, extra, { showOwnerDelete: false }));

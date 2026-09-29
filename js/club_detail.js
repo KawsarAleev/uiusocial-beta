@@ -248,13 +248,19 @@ async function loadClubPosts() {
 }
 
 function renderClubPost(post) {
+    const isAdmin = isAdminUser();
+    const isOwner = currentUser && String(post.author_id) === String(currentUser.id);
+    const canManageClub = isAdmin || isOwner || currentClub?.is_manager;
     let commentsHtml = '';
     if (post.comments && post.comments.length > 0) {
         commentsHtml = post.comments.map(c => `
-            <div style="display:flex; gap:8px; margin-bottom:8px; padding:8px; background:var(--bg-body); border-radius:6px;">
+            <div style="display:flex; gap:8px; margin-bottom:8px; padding:8px; background:var(--bg-body); border-radius:6px;" class="comment-item" data-comment-id="${c.id}">
                 <img src="${mediaUrl(c.author_avatar || 'assets/images/students/default.png')}" alt="" class="avatar" style="width:28px; height:28px; flex-shrink:0;">
-                <div>
-                    <div style="font-size:12px; font-weight:600;">${escapeHTML(c.author)}</div>
+                <div style="flex:1;">
+                    <div style="font-size:12px; font-weight:600;">
+                        ${escapeHTML(c.author)}
+                        ${canManageClub ? `<span class="club-comment-del comment-action ${isAdmin && !isOwner ? 'admin-del-club-comment' : 'del-club-comment'}" data-id="${c.id}" title="Delete comment" style="cursor:pointer;"><i class="fa-solid ${isAdmin && !isOwner ? 'fa-shield-halved' : 'fa-trash'}"></i></span>` : ''}
+                    </div>
                     <div style="font-size:13px; color:var(--text-main);">${escapeHTML(c.content)}</div>
                 </div>
             </div>
@@ -262,13 +268,14 @@ function renderClubPost(post) {
     }
 
     return `
-        <div class="card mb-4" style="padding:20px;">
+        <div class="card club-post-card mb-4" data-id="${post.id}" style="padding:20px;">
             <div style="display:flex; gap:12px; margin-bottom:12px;">
                 <img src="${mediaUrl(post.author_avatar || 'assets/images/students/default.png')}" alt="" class="avatar" style="width:40px; height:40px; flex-shrink:0;">
-                <div>
+                <div style="flex:1;">
                     <div style="font-weight:600; font-size:14px;">${escapeHTML(post.author)} <span style="font-size:11px; color:var(--text-muted); font-weight:400;">${escapeHTML(post.role)}</span></div>
                     <div style="font-size:12px; color:var(--text-muted);">${post.time}</div>
                 </div>
+                ${canManageClub ? `<span class="club-post-del post-stat ${isAdmin && !isOwner ? 'admin-del-club-post' : 'del-club-post'}" data-id="${post.id}" title="Delete post" style="cursor:pointer;"><i class="fa-solid ${isAdmin && !isOwner ? 'fa-shield-halved' : 'fa-trash'}"></i>${isAdmin && !isOwner ? ' <i class="fa-solid fa-trash"></i>' : ''}</span>` : ''}
             </div>
             <p style="font-size:14px; line-height:1.5; margin-bottom:12px;">${escapeHTML(post.content)}</p>
             <div style="display:flex; gap:16px; color:var(--text-muted); font-size:13px;">

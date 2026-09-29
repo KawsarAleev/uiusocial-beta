@@ -18,9 +18,11 @@ if ($action === 'delete') {
     $db->prepare("UPDATE reports SET status = 'reviewed' WHERE post_id = ?")->execute([$report['post_id']]);
     notifyActivity('post_deleted', getCurrentUserId(), [$report['post_owner']], ['post_id' => (int) $report['post_id']]);
     notifyActivity('report_resolved', 0, [$report['reported_by']]);
+    logAdminAction('resolve_report', 'post', (int) $report['post_id'], 'Deleted reported post (' . $report['reason'] . ')');
     jsonResponse(['success' => true, 'status' => 'deleted']);
 }
 
 $db->prepare("UPDATE reports SET status = 'dismissed' WHERE id = ?")->execute([$id]);
 notifyActivity('report_resolved', 0, [$report['reported_by']]);
+logAdminAction('resolve_report', 'post', (int) $report['post_id'], 'Dismissed report (' . $report['reason'] . ')');
 jsonResponse(['success' => true, 'status' => 'dismissed']);

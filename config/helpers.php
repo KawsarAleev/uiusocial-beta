@@ -42,6 +42,15 @@ function requireAdmin() {
     }
 }
 
+function logAdminAction($action, $targetType, $targetId, $details = null) {
+    try {
+        $stmt = getDB()->prepare("INSERT INTO admin_logs (admin_id, action, target_type, target_id, details) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([getCurrentUserId(), $action, $targetType, (int) $targetId, $details]);
+    } catch (Exception $e) {
+        error_log('logAdminAction: ' . $e->getMessage());
+    }
+}
+
 function columnExists(PDO $db, $table, $column) {
     $stmt = $db->prepare("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?");
     $stmt->execute([$table, $column]);
@@ -52,6 +61,50 @@ function tableExists(PDO $db, $table) {
     $stmt = $db->prepare("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?");
     $stmt->execute([$table]);
     return (bool) $stmt->fetch();
+}
+
+function adminLogTargetName(PDO $db, $targetType, $targetId) {
+    $queries = [
+        'user' => "SELECT name FROM users WHERE id = ?",
+        'post' => "SELECT u.name FROM posts p JOIN users u ON u.id = p.user_id WHERE p.id = ?",
+        'comment' => "SELECT u.name FROM comments c JOIN users u ON u.id = c.user_id WHERE c.id = ?",
+        'club_post' => "SELECT u.name FROM club_posts p JOIN users u ON u.id = p.user_id WHERE p.id = ?",
+        'club_comment' => "SELECT u.name FROM club_post_comments c JOIN users u ON u.id = c.user_id WHERE c.id = ?",
+        'announcement' => "SELECT u.name FROM announcements a JOIN users u ON u.id = a.created_by WHERE a.id = ?",
+        'announcement_comment' => "SELECT u.name FROM announcement_comments c JOIN users u ON u.id = c.user_id WHERE c.id = ?",
+    ];
+    if (!isset($queries[$targetType])) return null;
+    try {
+        $stmt = $db->prepare($queries[$targetType]);
+        $stmt->execute([$targetId]);
+        $row = $stmt->fetch();
+        return $row['name'] ?? null;
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
+function deleteCommentTree(PDO $db, $commentId) {    $stmt = $db->prepare("SELECT id FROM comments WHERE parent_id = ?");
+    $stmt->execute([$commentId]);
+    foreach ($stmt->fetchAll() as $child) {
+        deleteCommentTree($db, (int) $child['id']);
+    }
+    if (tableExists($db, 'comment_likes')) {
+        $db->prepare("DELETE FROM comment_likes WHERE comment_id = ?")->execute([$commentId]);
+    }
+    $db->prepare("DELETE FROM comments WHERE id = ?")->execute([$commentId]);
+}
+
+function deleteCommentsForPost(PDO $db, $postId) {
+    $stmt = $db->prepare("
+        SELECT c.id FROM comments c
+        WHERE c.post_id = ?
+          AND NOT EXISTS (SELECT 1 FROM comments x WHERE x.id = c.parent_id)
+    ");
+    $stmt->execute([$postId]);
+    foreach ($stmt->fetchAll() as $row) {
+        deleteCommentTree($db, (int) $row['id']);
+    }
 }
 
 function uploadImage($fileKey, $subdir) {
@@ -73,6 +126,255 @@ function uploadImage($fileKey, $subdir) {
         return 'uploads/' . trim($subdir, '/') . '/' . $newFilename;
     }
     return null;
+}
+
+/**
+ * Allowlist for private chat attachments, keyed by the MIME type that
+ * finfo actually reports for the bytes on disk. The client-supplied type and
+ * the original filename are never trusted for this decision.
+ * SVG is deliberately excluded: it can carry script and is served inline.
+ */
+function chatAttachmentRules() {
+    return [
+        // images
+        'image/jpeg' => ['ext' => 'jpg', 'kind' => 'image', 'max' => 5 * 1024 * 1024],
+        'image/png'  => ['ext' => 'png', 'kind' => 'image', 'max' => 5 * 1024 * 1024],
+        'image/gif'  => ['ext' => 'gif', 'kind' => 'image', 'max' => 5 * 1024 * 1024],
+        'image/webp' => ['ext' => 'webp', 'kind' => 'image', 'max' => 5 * 1024 * 1024],
+        // documents
+        'application/pdf' => ['ext' => 'pdf', 'kind' => 'file', 'max' => 10 * 1024 * 1024],
+        'application/msword' => ['ext' => 'doc', 'kind' => 'file', 'max' => 10 * 1024 * 1024],
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => ['ext' => 'docx', 'kind' => 'file', 'max' => 10 * 1024 * 1024],
+        'application/vnd.ms-excel' => ['ext' => 'xls', 'kind' => 'file', 'max' => 10 * 1024 * 1024],
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => ['ext' => 'xlsx', 'kind' => 'file', 'max' => 10 * 1024 * 1024],
+        'application/vnd.ms-powerpoint' => ['ext' => 'ppt', 'kind' => 'file', 'max' => 10 * 1024 * 1024],
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation' => ['ext' => 'pptx', 'kind' => 'file', 'max' => 10 * 1024 * 1024],
+        'application/zip' => ['ext' => 'zip', 'kind' => 'file', 'max' => 10 * 1024 * 1024],
+        'application/x-zip-compressed' => ['ext' => 'zip', 'kind' => 'file', 'max' => 10 * 1024 * 1024],
+        'text/plain' => ['ext' => 'txt', 'kind' => 'file', 'max' => 5 * 1024 * 1024],
+        'text/csv' => ['ext' => 'csv', 'kind' => 'file', 'max' => 5 * 1024 * 1024],
+    ];
+}
+
+function humanFileSize($bytes) {
+    $bytes = (int) $bytes;
+    if ($bytes < 1024) return $bytes . ' B';
+    if ($bytes < 1048576) return round($bytes / 1024, 1) . ' KB';
+    return round($bytes / 1048576, 1) . ' MB';
+}
+
+/**
+ * Third-party podcast/video embeds.
+ *
+ * Only a provider name plus an opaque id are ever accepted, and the embed and
+ * watch URLs are rebuilt from those two values. A raw URL is never stored or
+ * echoed back, so a stored row cannot become a javascript:, data:, or
+ * look-alike phishing frame.
+ *
+ * Returns null when the pair is not a recognised provider with a well formed
+ * id, which callers must treat as "do not render".
+ */
+function podcastEmbedInfo($provider, $providerId) {
+    $provider = strtolower(trim((string) $provider));
+    $id = trim((string) $providerId);
+
+    if ($provider === 'youtube') {
+        // Classic 11-character video id. Anything else is rejected outright.
+        if (!preg_match('/^[A-Za-z0-9_-]{11}$/', $id)) return null;
+        return [
+            'provider' => 'youtube',
+            'embed' => 'https://www.youtube-nocookie.com/embed/' . $id,
+            'watch' => 'https://www.youtube.com/watch?v=' . $id,
+            'thumbnail' => 'https://i.ytimg.com/vi/' . $id . '/hqdefault.jpg',
+            'origin' => 'https://www.youtube-nocookie.com',
+        ];
+    }
+
+    if ($provider === 'spotify') {
+        // Album, track or playlist ids are 22 base62 characters.
+        if (!preg_match('/^[A-Za-z0-9]{22}$/', $id)) return null;
+        return [
+            'provider' => 'spotify',
+            'embed' => 'https://open.spotify.com/embed/' . $id,
+            'watch' => 'https://open.spotify.com/' . $id,
+            'thumbnail' => null,
+            'origin' => 'https://open.spotify.com',
+        ];
+    }
+
+    if ($provider === 'soundcloud') {
+        // Only a bare public track path is allowed, e.g. "artist/track-name".
+        if (!preg_match('~^[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,80}$~', $id)) return null;
+        return [
+            'provider' => 'soundcloud',
+            'embed' => 'https://w.soundcloud.com/player/?url=' . rawurlencode('https://soundcloud.com/' . $id) . '&visual=false',
+            'watch' => 'https://soundcloud.com/' . $id,
+            'thumbnail' => null,
+            'origin' => 'https://w.soundcloud.com',
+        ];
+    }
+
+    return null;
+}
+
+/** Extracts "provider id" from a pasted YouTube/Spotify link or a bare id. */
+function podcastParseInput($provider, $input) {
+    $value = trim((string) $input);
+    if ($value === '') return '';
+
+    if ($provider === 'youtube') {
+        if (preg_match('/^[A-Za-z0-9_-]{11}$/', $value)) return $value;
+        $patterns = [
+            '~youtube\.com/watch\?(?:.*&)?v=([A-Za-z0-9_-]{11})~i',
+            '~youtu\.be/([A-Za-z0-9_-]{11})~i',
+            '~youtube\.com/embed/([A-Za-z0-9_-]{11})~i',
+            '~youtube\.com/shorts/([A-Za-z0-9_-]{11})~i',
+            '~youtube\.com/live/([A-Za-z0-9_-]{11})~i',
+        ];
+        foreach ($patterns as $p) {
+            if (preg_match($p, $value, $m)) return $m[1];
+        }
+        return '';
+    }
+
+    if ($provider === 'spotify') {
+        if (preg_match('/^[A-Za-z0-9]{22}$/', $value)) return $value;
+        // Covers /track/, /album/, /playlist/, /episode/, /show/, the
+        // /embed/ variant, and the /intl-xx/ locale prefix.
+        $pattern = '~open\.spotify\.com/(?:intl-[a-z]{2}/)?(?:embed/)?(?:track|album|playlist|episode|show)/([A-Za-z0-9]{22})~i';
+        if (preg_match($pattern, $value, $m)) return $m[1];
+        return '';
+    }
+
+    if ($provider === 'soundcloud') {
+        $value = preg_replace('~^https?://soundcloud\.com/~i', '', $value);
+        $value = rtrim($value, '/');
+        if (preg_match('~^[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,80}$~', $value)) return $value;
+        return '';
+    }
+
+    return '';
+}
+
+/**
+ * Builds the safe subset of a podcast row that the browser needs. Returns null
+ * when the stored provider/id pair no longer validates.
+ */
+function podcastPublicRow(array $row) {
+    $embed = podcastEmbedInfo($row['provider'] ?? '', $row['provider_id'] ?? '');
+    if (!$embed) return null;
+
+    $id = (int) $row['id'];
+    return [
+        'id' => $id,
+        'title' => (string) $row['title'],
+        'description' => (string) ($row['description'] ?? ''),
+        'category' => (string) ($row['category'] ?? 'General'),
+        'kind' => (string) ($row['kind'] ?? 'video'),
+        'duration' => $row['duration'] !== null ? (string) $row['duration'] : null,
+        'source_name' => $row['source_name'] !== null ? (string) $row['source_name'] : ucfirst($embed['provider']),
+        'embed_url' => $embed['embed'] . (str_contains($embed['embed'], '?') ? '&' : '?') . 'rel=0',
+        'watch_url' => $embed['watch'],
+        'thumbnail' => $embed['thumbnail'],
+        'origin' => $embed['origin'],
+        'provider' => $embed['provider'],
+    ];
+}
+
+function chatUploadDir() {
+    $dir = __DIR__ . '/../uploads/chat/';
+    if (!is_dir($dir)) @mkdir($dir, 0775, true);
+    return realpath($dir) ?: null;
+}
+
+/**
+ * Validates and stores a private chat attachment.
+ *
+ * Returns ['ok' => true, ...] or ['ok' => false, 'error' => '...'].
+ * The stored filename is random and its extension comes from the sniffed
+ * MIME type, so a file called "shell.php.png" cannot keep a script name.
+ */
+function storeChatAttachment($fileKey) {
+    if (!isset($_FILES[$fileKey]) || !$_FILES[$fileKey] || $_FILES[$fileKey]['error'] === UPLOAD_ERR_NO_FILE) {
+        return ['ok' => false, 'error' => 'No file selected'];
+    }
+    $file = $_FILES[$fileKey];
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $codes = [
+            UPLOAD_ERR_INI_SIZE => 'File is larger than the server allows',
+            UPLOAD_ERR_FORM_SIZE => 'File is larger than the form allows',
+            UPLOAD_ERR_PARTIAL => 'Upload was interrupted, please retry',
+            UPLOAD_ERR_NO_TMP_DIR => 'Server has no temp folder for uploads',
+            UPLOAD_ERR_CANT_WRITE => 'Server could not write the file',
+            UPLOAD_ERR_EXTENSION => 'Upload was blocked by a server extension',
+        ];
+        return ['ok' => false, 'error' => $codes[$file['error']] ?? 'Upload failed'];
+    }
+    if (!is_uploaded_file($file['tmp_name'])) {
+        return ['ok' => false, 'error' => 'Invalid upload'];
+    }
+    if (!function_exists('finfo_open')) {
+        return ['ok' => false, 'error' => 'Server cannot verify file types'];
+    }
+
+    $size = (int) $file['size'];
+    if ($size <= 0) return ['ok' => false, 'error' => 'File is empty'];
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = strtolower(trim((string) finfo_file($finfo, $file['tmp_name'])));
+    finfo_close($finfo);
+
+    $rules = chatAttachmentRules();
+    if (!isset($rules[$mime])) {
+        return ['ok' => false, 'error' => 'That file type is not allowed (detected ' . ($mime ?: 'unknown') . ')'];
+    }
+    $rule = $rules[$mime];
+    if ($size > $rule['max']) {
+        return ['ok' => false, 'error' => $rule['kind'] === 'image'
+            ? 'Images must be under ' . humanFileSize($rule['max'])
+            : 'Documents must be under ' . humanFileSize($rule['max'])];
+    }
+
+    // Second opinion for images: a real decoder must be able to read the header,
+    // which rejects text files renamed to .png and other polyglot tricks.
+    if ($rule['kind'] === 'image') {
+        $info = @getimagesize($file['tmp_name']);
+        if ($info === false || empty($info['mime']) || strtolower($info['mime']) !== $mime) {
+            return ['ok' => false, 'error' => 'That image could not be verified'];
+        }
+    }
+    if ($mime === 'application/pdf') {
+        $fh = fopen($file['tmp_name'], 'rb');
+        $magic = $fh ? fread($fh, 5) : '';
+        if ($fh) fclose($fh);
+        if ($magic !== '%PDF-') {
+            return ['ok' => false, 'error' => 'That PDF could not be verified'];
+        }
+    }
+
+    $dir = chatUploadDir();
+    if (!$dir) return ['ok' => false, 'error' => 'Attachment storage is unavailable'];
+
+    $name = bin2hex(random_bytes(16)) . '.' . $rule['ext'];
+    $dest = $dir . DIRECTORY_SEPARATOR . $name;
+    if (!move_uploaded_file($file['tmp_name'], $dest)) {
+        return ['ok' => false, 'error' => 'Could not save the attachment'];
+    }
+    @chmod($dest, 0644);
+
+    // Display name is cosmetic only: strip control characters and path hints.
+    $display = basename(str_replace('\\', '/', (string) $file['name']));
+    $display = preg_replace('/[\x00-\x1F\x7F]/u', '', $display);
+    $display = trim((string) $display) ?: 'attachment';
+
+    return [
+        'ok' => true,
+        'path' => 'uploads/chat/' . $name,
+        'mime' => $mime,
+        'kind' => $rule['kind'],
+        'name' => mb_substr($display, 0, 200),
+        'size' => humanFileSize($size),
+    ];
 }
 
 function notificationIconClass($type) {
@@ -108,6 +410,8 @@ function notificationIconClass($type) {
         'club_removed' => 'fa-solid fa-user-minus',
         'post_edited' => 'fa-solid fa-pen',
         'post_deleted' => 'fa-solid fa-trash',
+        'comment_deleted' => 'fa-solid fa-comment-slash',
+        'content_removed' => 'fa-solid fa-trash',
         'join_request' => 'fa-solid fa-user-shield',
         'join_approved' => 'fa-solid fa-circle-check',
         'join_rejected' => 'fa-solid fa-circle-xmark',
@@ -127,7 +431,7 @@ function notificationIconClass($type) {
 function notificationIconColor($type) {
     if (strpos($type, 'like_') === 0) return '#e0245e';
     if (strpos($type, 'message') !== false) return '#0ea5e9';
-    if (strpos($type, 'rejected') !== false || strpos($type, 'declined') !== false || strpos($type, 'removed') !== false || $type === 'post_deleted') return '#dc3545';
+    if (strpos($type, 'rejected') !== false || strpos($type, 'declined') !== false || strpos($type, 'removed') !== false || $type === 'post_deleted' || $type === 'comment_deleted') return '#dc3545';
     if (strpos($type, 'request') !== false) return '#f59e0b';
     if (strpos($type, 'approved') !== false || strpos($type, 'accepted') !== false) return '#16a34a';
     if (strpos($type, 'report') !== false) return '#dc3545';
@@ -279,6 +583,10 @@ function notificationTemplate($type, $actorName, array $ctx = []) {
             return $make('Post updated', $actorName . ' edited ' . $item . $tail . '.', postNotificationLink($ctx));
         case 'post_deleted':
             return $make('Post removed', 'Your post was removed by ' . $actorName . '.', 'index.html');
+        case 'comment_deleted':
+            return $make('Comment removed', 'Your comment was removed by ' . $actorName . '.', $item);
+        case 'content_removed':
+            return $make('Content removed', 'Your ' . $item . ' was removed by ' . $actorName . '.', 'index.html');
 
         case 'join_request':
             return $make('New joining request', $actorName . ' requested to join as ' . ($ctx['requested_role'] ?? 'student') . '.', 'admin.html');

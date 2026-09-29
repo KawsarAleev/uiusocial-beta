@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcasts - UIU Social</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/podcasts.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo"><i class="fa-solid fa-graduation-cap mr-2 text-primary"></i><div><a href="index.html">UIU Social</a></div></div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="groups.html" class="nav-item"><i class="fa-solid fa-users-line"></i> Department Groups</a>
+                <a href="club_hub.html" class="nav-item"><i class="fa-solid fa-puzzle-piece"></i> Club Hub</a>
+                <a href="events.html" class="nav-item"><i class="fa-regular fa-calendar"></i> Events</a>
+                <a href="messages.html" class="nav-item"><i class="fa-regular fa-message"></i> Messages</a>
+                <a href="map.html" class="nav-item"><i class="fa-solid fa-map-location-dot"></i> Campus Map</a>
+                <a href="podcasts.html" class="nav-item"><i class="fa-solid fa-headphones"></i> Podcasts</a>
+                <a href="admin.html" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Admin Panel</a>
+            </nav>
+            <div class="sidebar-footer"><a href="login.html" class="nav-item sign-out text-danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out</a></div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search people, posts, groups, clubs, events...">
+                </div>
+                <div class="header-actions">
+                    <div class="header-icon"><i class="fa-regular fa-bell"></i><span class="notification-badge"></span></div>
+                    <div class="header-user"><img src="assets/images/students/default.png" alt="User" class="avatar"></div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="podcasts-hero">
+                    <div>
+                        <h1 class="page-title mb-1"><i class="fa-solid fa-headphones text-primary"></i> Podcasts</h1>
+                        <p class="text-muted mb-0">Lectures, talks and focus audio from across the web, playable right here.</p>
+                    </div>
+                    <div class="podcasts-hero-actions">
+                        <button class="btn btn-outline" id="podcast-filter-toggle" type="button">
+                            <i class="fa-solid fa-sliders"></i> Filters
+                        </button>
+                        <button class="btn btn-primary" id="podcast-add-open" type="button" hidden>
+                            <i class="fa-solid fa-plus"></i> Add episode
+                        </button>
+                    </div>
+                </div>
+
+                <div class="podcast-filter-bar" id="podcast-filter-bar" hidden>
+                    <div class="podcast-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="podcast-search-input" placeholder="Search episodes by title, topic or channel...">
+                    </div>
+                    <div class="podcast-kinds" id="podcast-kind-filters"></div>
+                    <div class="podcast-categories" id="podcast-category-filters"></div>
+                </div>
+
+                <div class="podcast-feature" id="podcast-feature" hidden></div>
+
+                <div class="podcast-section-head">
+                    <h2 id="podcast-section-title">All episodes</h2>
+                    <span class="text-muted text-sm" id="podcast-count"></span>
+                </div>
+
+                <div class="podcast-grid" id="podcast-grid">
+                    <div class="podcast-empty">Loading episodes...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Watch modal -->
+    <div class="uiu-modal-overlay" id="podcast-modal" hidden>
+        <div class="uiu-modal-box podcast-modal-box" role="dialog" aria-modal="true" aria-labelledby="podcast-modal-title">
+            <button type="button" class="podcast-modal-close" id="podcast-modal-close" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="podcast-modal-title"></h3>
+            <div class="podcast-embed-wrap" id="podcast-modal-embed"></div>
+            <div class="podcast-modal-meta" id="podcast-modal-meta"></div>
+            <div class="uiu-modal-actions">
+                <a class="btn btn-outline" id="podcast-modal-watch" target="_blank" rel="noopener noreferrer">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Open on source
+                </a>
+                <button type="button" class="btn btn-primary" id="podcast-modal-done">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin add form -->
+    <div class="uiu-modal-overlay" id="podcast-add-modal" hidden>
+        <div class="uiu-modal-box podcast-modal-box" role="dialog" aria-modal="true" aria-labelledby="podcast-add-title">
+            <button type="button" class="podcast-modal-close" id="podcast-add-close" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="podcast-add-title"><i class="fa-solid fa-plus"></i> Add an episode</h3>
+            <p class="text-muted text-sm">
+                Paste a YouTube or Spotify link. Only the video or track id is stored, never the URL,
+                and the embed address is rebuilt on the server.
+            </p>
+            <div class="podcast-form">
+                <label for="podcast-form-link">Link or id</label>
+                <input type="text" class="form-control" id="podcast-form-link"
+                       placeholder="https://www.youtube.com/watch?v=...">
+
+                <div class="podcast-form-row">
+                    <div>
+                        <label for="podcast-form-provider">Source</label>
+                        <select class="form-control" id="podcast-form-provider">
+                            <option value="youtube">YouTube</option>
+                            <option value="spotify">Spotify</option>
+                            <option value="soundcloud">SoundCloud</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="podcast-form-kind">Type</label>
+                        <select class="form-control" id="podcast-form-kind">
+                            <option value="video">Video</option>
+                            <option value="audio">Audio</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label for="podcast-form-title">Title</label>
+                <input type="text" class="form-control" id="podcast-form-title" placeholder="Episode title" maxlength="200">
+
+                <label for="podcast-form-category">Category</label>
+                <input type="text" class="form-control" id="podcast-form-category" placeholder="e.g. Computer Science" maxlength="60">
+
+                <label for="podcast-form-duration">Duration (optional)</label>
+                <input type="text" class="form-control" id="podcast-form-duration" placeholder="e.g. 24h 08m" maxlength="20">
+
+                <label for="podcast-form-desc">Description</label>
+                <textarea class="form-control" id="podcast-form-desc" rows="3" maxlength="2000"
+                          placeholder="What is this episode about?"></textarea>
+            </div>
+            <div class="uiu-modal-actions">
+                <button type="button" class="btn btn-outline" id="podcast-add-cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="podcast-add-submit">
+                    <i class="fa-solid fa-check"></i> Add episode
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/podcasts.js"></script>
+</body>
+</html>

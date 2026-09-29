@@ -303,3 +303,34 @@ ensureColumn($db, 'clubs', 'updated_at', 'TIMESTAMP NULL DEFAULT NULL');
 ensureColumn($db, 'events', 'max_attendees', 'INT DEFAULT NULL');
 ensureColumn($db, 'events', 'registration_deadline', 'TIMESTAMP NULL DEFAULT NULL');
 ensureColumn($db, 'events', 'updated_at', 'TIMESTAMP NULL DEFAULT NULL');
+
+// Real-time chat: attachment metadata, edit tracking and thread pagination index
+ensureColumn($db, 'messages', 'file_path', 'VARCHAR(500) DEFAULT NULL');
+ensureColumn($db, 'messages', 'file_mime', 'VARCHAR(150) DEFAULT NULL');
+ensureColumn($db, 'messages', 'reply_to', 'INT DEFAULT NULL');
+ensureColumn($db, 'messages', 'edited_at', 'TIMESTAMP NULL DEFAULT NULL');
+try { $db->exec("ALTER TABLE messages ADD INDEX idx_thread (sender_id, receiver_id, id)"); } catch (Exception $e) {}
+try { $db->exec("ALTER TABLE messages MODIFY COLUMN message_type ENUM('text','image','file') NOT NULL DEFAULT 'text'"); } catch (Exception $e) {}
+
+// Podcasts: curated third-party audio/video. Only a provider plus an opaque id
+// is stored, never a raw URL, so the embed address is always rebuilt server side.
+if (!tableExists($db, 'podcasts')) {
+    $db->exec("
+        CREATE TABLE podcasts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(200) NOT NULL,
+            description TEXT,
+            provider ENUM('youtube','spotify','soundcloud') NOT NULL DEFAULT 'youtube',
+            provider_id VARCHAR(150) NOT NULL,
+            kind ENUM('video','audio') NOT NULL DEFAULT 'video',
+            category VARCHAR(60) NOT NULL DEFAULT 'General',
+            duration VARCHAR(20) DEFAULT NULL,
+            source_name VARCHAR(120) DEFAULT NULL,
+            created_by INT DEFAULT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_podcast_category (category),
+            INDEX idx_podcast_kind (kind),
+            CONSTRAINT podcasts_fk_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB
+    ");
+}

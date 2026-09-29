@@ -1487,6 +1487,13 @@ body {
 }
 
 /* Global modal (matches existing .report-modal style) */
+
+/* An author-level `display` declaration outranks the browser's user-agent
+   [hidden] rule, so `display:flex` below would otherwise defeat the `hidden`
+   attribute: a modal marked hidden in the markup would still render, and
+   setting el.hidden = true would have no visible effect. */
+[hidden] { display: none !important; }
+
 .uiu-modal-overlay {
     position: fixed;
     inset: 0;
@@ -1528,6 +1535,72 @@ body {
 .btn-reply-comment { font-size: 12px; cursor: pointer; background: none; 
                      border: none; color: var(--primary-color); padding: 0; }
 .btn-reply-comment:hover { text-decoration: underline; }
+
+/* Admin moderation actions on content */
+.admin-del-post,
+.admin-del-club-post,
+.admin-del-announcement {
+    color: var(--primary-color);
+    opacity: 0.75;
+    transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.admin-del-post:hover,
+.admin-del-club-post:hover,
+.admin-del-announcement:hover {
+    opacity: 1;
+    color: var(--danger-color);
+}
+
+.comment-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.comment-action {
+    font-size: 12px;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.comment-action:hover { color: var(--danger-color); }
+.comment-action .fa-shield-halved:hover { color: var(--primary-color); }
+
+.admin-delete-box {
+    text-align: left;
+    max-width: 460px;
+}
+
+.admin-delete-box h3 {
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-delete-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.admin-delete-box textarea { resize: vertical; }
+
+.btn-admin-danger {
+    background-color: var(--danger-color);
+    color: #fff;
+}
+
+.btn-admin-danger:hover { background-color: #a71d2a; }
+.btn-admin-danger:disabled { opacity: 0.6; cursor: default; }
 
 /* Skeleton loaders */
 .skeleton {
