@@ -1,7 +1,16 @@
 document.addEventListener('DOMContentLoaded', async () => {
     await initApp();
+    setupCreateEventButton();
     await loadEventDetail();
 });
+
+function setupCreateEventButton() {
+    const btn = document.getElementById('event-create-btn');
+    if (btn && canAct()) {
+        btn.style.display = '';
+        btn.addEventListener('click', () => openCreateEventModal());
+    }
+}
 
 let currentEventId = null;
 let currentEvent = null;

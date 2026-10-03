@@ -3,11 +3,7 @@ require_once __DIR__ . '/../../config/helpers.php';
 requireLogin();
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    jsonResponse(['error' => 'Method not allowed'], 405);
-}
-
-$data = json_decode(file_get_contents('php://input'), true);
+$data = json_decode(file_get_contents('php://input'), true) ?: $_GET;
 $announcementId = (int) ($data['announcement_id'] ?? 0);
 if (!$announcementId) {
     jsonResponse(['error' => 'Announcement ID required'], 400);

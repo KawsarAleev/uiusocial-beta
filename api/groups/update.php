@@ -8,7 +8,7 @@ $groupId = (int)($data['group_id'] ?? 0);
 $name = trim($data['name'] ?? '');
 $description = trim($data['description'] ?? '');
 if ($groupId) {
-    if (!isGroupManager($groupId)) jsonResponse(['error' => 'Not allowed'], 403);
+    if (!isGroupManager($groupId) && !isGroupModerator()) jsonResponse(['error' => 'Not allowed'], 403);
     $fields = [];
     $params = [];
     if ($name !== '') { $fields[] = 'name = ?'; $params[] = $name; }

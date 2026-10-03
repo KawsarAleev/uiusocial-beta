@@ -27,8 +27,10 @@ $active = array_values(array_filter($members, fn($m) => $m['role'] !== 'requeste
 $group['membership'] = $myRole;
 $group['is_enrolled'] = $myRole !== 'none' && $myRole !== 'requested';
 $group['is_manager'] = isGroupManager($id);
+$canModerate = $group['is_manager'] || isGroupModerator();
+$group['is_moderator'] = $canModerate;
 $group['members'] = $active;
-$group['join_requests'] = $group['is_manager'] ? $pending : [];
+$group['join_requests'] = $canModerate ? $pending : [];
 $group['members_count'] = count($active);
 
 jsonResponse(['success' => true, 'group' => $group]);

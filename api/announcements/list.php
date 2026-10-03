@@ -5,14 +5,21 @@ header('Content-Type: application/json');
 
 $db = getDB();
 $me = getCurrentUserId();
-$limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 3;
+$user = getCurrentUser();
+$limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
 $clubOnly = isset($_GET['club']) && $_GET['club'] === '1';
+$generalOnly = isset($_GET['general']) && $_GET['general'] === '1';
 
-$sql = "SELECT a.*, c.name AS club_name, c.image AS club_image
+$sql = "SELECT a.*, c.name AS club_name, c.image AS club_image,
+               u.name AS author_name, u.avatar AS author_avatar, u.role AS author_role
         FROM announcements a
-        LEFT JOIN clubs c ON c.id = a.club_id";
-if ($clubOnly) $sql .= " WHERE a.club_id IS NOT NULL";
-$sql .= " ORDER BY a.created_at DESC LIMIT " . max(1, min($limit, 20));
+        LEFT JOIN clubs c ON c.id = a.club_id
+        LEFT JOIN users u ON u.id = a.created_by";
+$where = [];
+if ($clubOnly) $where[] = "a.club_id IS NOT NULL";
+if ($generalOnly) $where[] = "a.club_id IS NULL";
+if ($where) $sql .= " WHERE " . implode(' AND ', $where);
+$sql .= " ORDER BY a.created_at DESC LIMIT " . max(1, min($limit, 50));
 $rows = $db->query($sql)->fetchAll();
 
 foreach ($rows as &$a) {
@@ -29,6 +36,7 @@ foreach ($rows as &$a) {
     $cc->execute([$a['id']]);
     $a['comments_count'] = (int) $cc->fetch()['c'];
     $a['time'] = timeAgo($a['created_at']);
+    $a['can_delete'] = isAdmin($user) || isFaculty($user) || ((int)($a['created_by'] ?? 0) === (int)$me);
 }
 unset($a);
 

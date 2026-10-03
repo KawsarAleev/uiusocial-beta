@@ -8,12 +8,13 @@ $eventId = (int)($data['event_id'] ?? 0);
 if (!$eventId) jsonResponse(['error' => 'Event ID required'], 400);
 $db = getDB();
 $me = getCurrentUserId();
+$user = getCurrentUser();
 $stmt = $db->prepare("SELECT * FROM events WHERE id = ?");
 $stmt->execute([$eventId]);
 $event = $stmt->fetch();
 if (!$event) jsonResponse(['error' => 'Event not found'], 404);
-$isAdmin = strtolower($me['role'] ?? '') === 'admin';
-if ($event['created_by'] != $me && !$isAdmin) jsonResponse(['error' => 'Not allowed'], 403);
+$isAdmin = isAdmin($user) || isFaculty($user);
+if ((int) $event['created_by'] !== (int) $me && !$isAdmin) jsonResponse(['error' => 'Not allowed'], 403);
 $fields = [];
 $params = [];
 foreach (['title', 'description', 'category', 'event_date', 'event_time', 'location', 'event_type', 'organizer'] as $f) {

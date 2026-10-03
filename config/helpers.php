@@ -11,6 +11,16 @@ function isAdmin($user = null) {
     return $user && strtolower($user['role']) === 'admin';
 }
 
+function isFaculty($user = null) {
+    $user = $user ?? getCurrentUser();
+    return $user && strtolower($user['role']) === 'faculty';
+}
+
+function isGroupModerator($user = null) {
+    $user = $user ?? getCurrentUser();
+    return $user && (isAdmin($user) || isFaculty($user));
+}
+
 function isGuestUser($user = null) {
     $user = $user ?? getCurrentUser();
     return $user && strtolower($user['role']) === 'guest';
@@ -551,7 +561,11 @@ function notificationTemplate($type, $actorName, array $ctx = []) {
         case 'new_club_post':
             return $make('New club post', $actorName . ' posted in ' . $clubName . $tail . '.', 'club_detail.html?id=' . (int) ($ctx['club_id'] ?? 0));
         case 'new_announcement':
-            return $make('New announcement', $actorName . ' posted an announcement in ' . $clubName . '.', 'club_detail.html?id=' . (int) ($ctx['club_id'] ?? 0));
+            $clubId = (int) ($ctx['club_id'] ?? 0);
+            if ($clubId > 0) {
+                return $make('New announcement', $actorName . ' posted an announcement in ' . $clubName . '.', 'club_detail.html?id=' . $clubId);
+            }
+            return $make('New announcement', $actorName . ' posted a new announcement.', 'announcements.html');
 
         case 'event_rsvp':
             return $make('Event RSVP', $actorName . ' is going to ' . $eventName . '.', 'event_detail.html?id=' . (int) ($ctx['event_id'] ?? 0));

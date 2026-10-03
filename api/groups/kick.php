@@ -11,13 +11,13 @@ $data = json_decode(file_get_contents('php://input'), true);
 $groupId = (int) ($data['group_id'] ?? 0);
 $userId = (int) ($data['user_id'] ?? 0);
 
-if (!isGroupManager($groupId)) jsonResponse(['error' => 'Not allowed'], 403);
+if (!isGroupManager($groupId) && !isGroupModerator()) jsonResponse(['error' => 'Not allowed'], 403);
 
 $db = getDB();
 $g = $db->prepare("SELECT created_by FROM groups_table WHERE id = ?");
 $g->execute([$groupId]);
 $group = $g->fetch();
-if ($group && (int) $group['created_by'] === $userId && !isAdmin()) {
+if ($group && (int) $group['created_by'] === $userId && !isGroupModerator()) {
     jsonResponse(['error' => 'Cannot remove the group creator'], 403);
 }
 

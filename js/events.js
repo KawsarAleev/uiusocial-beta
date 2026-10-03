@@ -32,9 +32,9 @@ async function setupEventsPage() {
         });
     });
 
-    // Show Create Event button for admins
+    // Show Create Event button for students, faculty, and admins
     const createBtn = document.getElementById('create-event-btn');
-    if (createBtn && isAdminUser()) {
+    if (createBtn && canAct()) {
         createBtn.style.display = '';
     }
 
@@ -72,13 +72,15 @@ function openCreateEventModal() {
                 <div style="display:flex; gap:12px;">
                     <div class="ce-form-group" style="flex:1;">
                         <label class="ce-form-label">Category</label>
-                        <select name="category" class="ce-form-control">
-                            <option value="seminar">Seminar</option>
-                            <option value="workshop">Workshop</option>
-                            <option value="conference">Conference</option>
-                            <option value="webinar">Webinar</option>
-                            <option value="social">Social</option>
-                        </select>
+                            <select name="category" class="ce-form-control">
+                                <option value="seminar">Seminar</option>
+                                <option value="festival">Fest</option>
+                                <option value="meetup">Meetup</option>
+                                <option value="workshop">Workshop</option>
+                                <option value="conference">Conference</option>
+                                <option value="webinar">Webinar</option>
+                                <option value="social">Social</option>
+                            </select>
                     </div>
                     <div class="ce-form-group" style="flex:1;">
                         <label class="ce-form-label">Event Type</label>
@@ -116,7 +118,7 @@ function openCreateEventModal() {
                 </div>
                 <div style="display:flex; gap:8px; justify-content:center; margin-top:16px;">
                     <button type="button" class="btn btn-outline" id="ce-cancel">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="ce-submit"><i class="fa-solid fa-plus"></i> Create Event</button>
+                    <button type="submit" class="btn btn-primary btn-sm" id="ce-submit"><i class="fa-solid fa-plus"></i> Create Event</button>
                 </div>
             </form>
         </div>

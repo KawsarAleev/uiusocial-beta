@@ -13,5 +13,5 @@ $me = getCurrentUserId();
 $mem = $db->prepare("SELECT gm.role, gm.user_id, u.name, u.avatar, u.department FROM group_members gm JOIN users u ON u.id = gm.user_id WHERE gm.group_id = ?");
 $mem->execute([$id]);
 $members = $mem->fetchAll();
-$isManager = isGroupManager($id);
+$isManager = isGroupManager($id) || isGroupModerator();
 jsonResponse(['success' => true, 'group' => array_merge($group, ['members' => $members, 'is_manager' => $isManager])]);

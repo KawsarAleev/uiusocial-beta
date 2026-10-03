@@ -28,6 +28,9 @@
                 <a href="groups.html" class="nav-item active">
                     <i class="fa-solid fa-users-line"></i> Department Groups
                 </a>
+                <a href="announcements.html" class="nav-item">
+                    <i class="fa-solid fa-bullhorn"></i> Announcements
+                </a>
                 <a href="club_hub.html" class="nav-item">
                     <i class="fa-solid fa-puzzle-piece"></i> Club Hub
                 </a>
@@ -97,9 +100,11 @@
                         </div>
 
                         <div class="profile-actions">
-                            <button class="btn btn-primary" id="group-join-btn">
-                                <i class="fa-solid fa-user-plus"></i> Join Group
-                            </button>
+                            <div id="group-header-actions" class="d-flex gap-2 align-items-center">
+                                <button class="btn btn-primary" id="group-join-btn">
+                                    <i class="fa-solid fa-user-plus"></i> Join Group
+                                </button>
+                            </div>
                             <button class="btn btn-outline" id="group-share-btn">
                                 <i class="fa-solid fa-share-nodes"></i> Share
                             </button>
@@ -132,9 +137,15 @@
                 </div>
 
                 <div class="feed-section mt-3" id="tab-members" style="display:none;">
-                    <div class="card text-center text-muted p-5">
-                        <i class="fa-solid fa-users mb-3" style="font-size:2rem;"></i>
-                        <p>Member directory will be available once the backend is connected.</p>
+                    <div id="group-join-requests" class="mb-3" style="display:none;">
+                        <div class="card p-4">
+                            <h4 style="margin:0 0 12px 0;font-size:16px;">Pending Join Requests</h4>
+                            <div id="group-requests-list" class="mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="card p-4">
+                        <h4 style="margin:0 0 12px 0;font-size:16px;">Group Members</h4>
+                        <div id="group-members-list" class="mt-2"></div>
                     </div>
                 </div>
 

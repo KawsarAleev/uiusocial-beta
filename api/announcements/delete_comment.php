@@ -19,9 +19,10 @@ $stmt->execute([$commentId]);
 $comment = $stmt->fetch();
 if (!$comment) jsonResponse(['error' => 'Comment not found'], 404);
 
-$isAdminAction = isAdmin() && (int) $comment['user_id'] !== (int) $me;
+$isAdminAction = (isAdmin() || isFaculty()) && (int) $comment['user_id'] !== (int) $me;
 $allowed = (int) $comment['user_id'] === (int) $me
     || isAdmin()
+    || isFaculty()
     || ($comment['club_id'] ? isClubManager($comment['club_id']) : false);
 if (!$allowed) jsonResponse(['error' => 'Not allowed'], 403);
 

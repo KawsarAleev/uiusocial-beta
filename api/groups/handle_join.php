@@ -10,9 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $data = json_decode(file_get_contents('php://input'), true);
 $groupId = (int) ($data['group_id'] ?? 0);
 $userId = (int) ($data['user_id'] ?? 0);
-$action = $data['action'] ?? 'accept';
+$action = strtolower($data['action'] ?? 'accept');
 
-if (!isGroupManager($groupId)) jsonResponse(['error' => 'Not allowed'], 403);
+if (!isGroupManager($groupId) && !isGroupModerator()) jsonResponse(['error' => 'Not allowed'], 403);
 
 $db = getDB();
 $stmt = $db->prepare("SELECT id FROM group_members WHERE group_id = ? AND user_id = ? AND role = 'requested'");
@@ -25,7 +25,7 @@ $groupName = $g->fetch()['name'] ?? 'the group';
 
 $ctx = ['group_id' => $groupId, 'group_name' => $groupName];
 
-if ($action === 'accept') {
+if (in_array($action, ['accept', 'approve', 'approved'], true)) {
     $db->prepare("UPDATE group_members SET role = 'member' WHERE group_id = ? AND user_id = ?")->execute([$groupId, $userId]);
     notifyActivity('group_join_approved', getCurrentUserId(), [$userId], $ctx);
     jsonResponse(['success' => true, 'status' => 'member']);

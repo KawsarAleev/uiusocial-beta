@@ -20,10 +20,10 @@ async function loadGroupDetail() {
         currentGroup = data.group;
         renderGroupHeader(currentGroup);
         await renderGroupPosts();
-        renderGroupMembers(data.members, currentGroup.is_manager);
+        renderGroupMembers(currentGroup.members, currentGroup.is_manager || isGroupModeratorUser());
         
-        if (currentGroup.is_manager) {
-            renderJoinRequests(data.requests || []);
+        if (currentGroup.is_manager || currentGroup.is_moderator) {
+            renderJoinRequests(currentGroup.join_requests || []);
         }
     } catch (e) {
         console.error('Failed to load group details', e);
@@ -57,11 +57,34 @@ function renderGroupHeader(group) {
     }
 
     const actions = document.getElementById('group-header-actions');
+    const canModerate = group.is_manager || isGroupModeratorUser();
     if (actions) {
-        if (group.is_manager) {
-            actions.innerHTML = `<button class="btn btn-outline" disabled><i class="fa-solid fa-user-shield"></i> Group Admin</button>`;
+        if (canModerate) {
+            actions.innerHTML = `
+                <button class="btn btn-outline" disabled>
+                    <i class="fa-solid fa-user-shield"></i> Group Admin
+                </button>
+                <button class="btn btn-outline btn-delete" id="group-delete-btn">
+                    <i class="fa-solid fa-trash"></i> Delete Group
+                </button>`;
+            document.getElementById('group-delete-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!guardAction(e)) return;
+                deleteGroup();
+            });
         } else if (group.membership === 'member') {
-            actions.innerHTML = `<button class="btn btn-action" disabled><i class="fa-solid fa-check"></i> Joined</button>`;
+            actions.innerHTML = `
+                <button class="btn btn-action" disabled>
+                    <i class="fa-solid fa-check"></i> Joined
+                </button>
+                <button class="btn btn-outline" id="group-leave-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i> Leave Group
+                </button>`;
+            document.getElementById('group-leave-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!guardAction(e)) return;
+                leaveGroup();
+            });
         } else if (group.membership === 'requested') {
             actions.innerHTML = `
                 <div class="d-flex gap-2">
@@ -84,7 +107,7 @@ function renderGroupHeader(group) {
             });
         } else {
             actions.innerHTML = `<button class="btn btn-primary" id="group-join-btn"><i class="fa-solid fa-plus"></i> Join Group</button>`;
-            document.getElementById('group-join-btn').addEventListener('click', async (e) => {
+            document.getElementById('group-join-btn')?.addEventListener('click', async (e) => {
                 if (!guardAction(e)) return;
                 showModal('Join ' + group.name + '?', 'Are you sure you want to request membership?', async () => {
                     try {
@@ -101,11 +124,16 @@ function renderGroupHeader(group) {
         }
     }
 
+    const shareBtn = document.getElementById('group-share-btn');
+    if (shareBtn) {
+        shareBtn.onclick = () => shareLink('group_detail.html?id=' + currentGroupId, group.name);
+    }
+
     // Show post box for everyone (but only allow posting if member)
     const createPost = document.getElementById('group-create-post');
     if (createPost) createPost.style.display = 'block';
     
-    const isMember = group.is_manager || group.membership === 'member';
+    const isMember = canModerate || group.membership === 'member';
     const submitBtn = document.getElementById('group-submit-post-btn');
     const postInput = document.getElementById('group-post-input');
     
@@ -146,6 +174,34 @@ function renderGroupHeader(group) {
     });
 }
 
+window.deleteGroup = async function() {
+    showModal('Delete Group?', 'Are you sure you want to permanently delete this group? This action cannot be undone.', async () => {
+        try {
+            await api('api/groups/delete.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ group_id: currentGroupId })
+            });
+            toast('Group deleted');
+            window.location.href = 'groups.html';
+        } catch (err) { alert(err.message); }
+    });
+};
+
+window.leaveGroup = async function() {
+    showModal('Leave Group?', 'Are you sure you want to leave this group?', async () => {
+        try {
+            await api('api/groups/leave.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ group_id: currentGroupId })
+            });
+            toast('You left the group');
+            window.location.href = 'groups.html';
+        } catch (err) { alert(err.message); }
+    });
+};
+
 async function renderGroupPosts() {
     const container = document.getElementById('group-posts-container');
     if (!container) return;
@@ -160,8 +216,8 @@ async function renderGroupPosts() {
         container.innerHTML = '';
         posts.forEach(post => {
             let extra = '';
-            // Group managers get their own delete; admins use the shield action from postCardHTML
-            if (currentGroup.is_manager && !isAdminUser()) {
+            // Group managers and faculty moderators get their own delete; admins use the shield action from postCardHTML
+            if ((currentGroup.is_manager || isGroupModeratorUser()) && !isAdminUser()) {
                 extra = `<i class="fa-solid fa-trash text-danger" style="cursor:pointer;" title="Delete Post" onclick="deleteGroupPost(${post.id})"></i>`;
             }
             container.insertAdjacentHTML('beforeend', postCardHTML(post, extra, { showOwnerDelete: false }));
@@ -250,8 +306,8 @@ function renderJoinRequests(requests) {
                 <div class="fw-600 text-sm">${escapeHTML(r.name)}</div>
             </div>
             <div class="d-flex gap-2">
-                <button class="btn btn-primary btn-sm w-100" onclick="handleGroupJoin(${r.id}, 'approve')">Approve</button>
-                <button class="btn btn-outline btn-sm w-100" onclick="handleGroupJoin(${r.id}, 'reject')">Reject</button>
+                <button class="btn btn-primary btn-sm w-100" onclick="handleGroupJoin(${r.user_id}, 'approve')">Approve</button>
+                <button class="btn btn-outline btn-sm w-100" onclick="handleGroupJoin(${r.user_id}, 'reject')">Reject</button>
             </div>
         </div>
     `).join('');

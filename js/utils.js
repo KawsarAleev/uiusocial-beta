@@ -22,6 +22,18 @@ function isAdminUser() {
     return !!(currentUser && currentUser.is_admin);
 }
 
+function isFacultyUser() {
+    return !!(currentUser && currentUser.is_faculty);
+}
+
+function isGroupModeratorUser() {
+    return isAdminUser() || isFacultyUser();
+}
+
+function isGuestUser() {
+    return !!(currentUser && currentUser.is_guest);
+}
+
 const ADMIN_CONTENT_LABELS = {
     post: 'post',
     comment: 'comment',
@@ -312,6 +324,22 @@ function setupNavigation() {
     if (currentUser && !isAdminUser()) {
         document.querySelectorAll('a[href="admin.html"]').forEach(a => a.style.display = 'none');
     }
+}
+
+function setupGuestNavigation() {
+    if (!currentUser || !isGuestUser()) return;
+    const allowedPaths = ['index.html', 'announcements.html'];
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+    if (!allowedPaths.includes(currentPath)) {
+        window.location.href = 'index.html';
+        return;
+    }
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+        const href = item.getAttribute('href');
+        if (!allowedPaths.includes(href)) {
+            item.style.display = 'none';
+        }
+    });
 }
 
 function setupPendingBanner() {
@@ -625,6 +653,10 @@ window.mediaUrl = mediaUrl;
 window.escapeHTML = escapeHTML;
 window.canAct = canAct;
 window.guardAction = guardAction;
+window.isAdminUser = isAdminUser;
+window.isFacultyUser = isFacultyUser;
+window.isGroupModeratorUser = isGroupModeratorUser;
+window.isGuestUser = isGuestUser;
 window.adminDeleteContent = adminDeleteContent;
 window.setupAdminContentTools = setupAdminContentTools;
 window.showModal = showModal;
@@ -1118,6 +1150,7 @@ async function initApp() {
     setupSearchShortcut();
     setupEscapeKey();
     setupHashNavigation();
+    setupGuestNavigation();
 }
 
 function setupMobileMenu() {

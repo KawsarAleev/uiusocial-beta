@@ -9,7 +9,7 @@ $targetUserId = (int)($data['user_id'] ?? 0);
 $action = $data['action'] ?? '';
 $me = getCurrentUserId();
 if (!$groupId || !$targetUserId) jsonResponse(['error' => 'IDs required'], 400);
-if (!isGroupManager($groupId)) jsonResponse(['error' => 'Not allowed'], 403);
+if (!isGroupManager($groupId) && !isGroupModerator()) jsonResponse(['error' => 'Not allowed'], 403);
 $db = getDB();
 if ($action === 'admin') {
     $db->prepare("UPDATE group_members SET role = 'admin' WHERE group_id = ? AND user_id = ?")->execute([$groupId, $targetUserId]);

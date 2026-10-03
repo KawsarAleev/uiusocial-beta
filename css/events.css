@@ -2,6 +2,18 @@
     margin-bottom: 24px;
 }
 
+#create-event-btn,
+#create-announcement-btn,
+#event-create-btn,
+#ce-submit,
+#announcement-submit-btn,
+#announcement-cancel-btn {
+    height: 30px !important;
+    padding: 0 6px !important;
+    font-size: 10px !important;
+    line-height: 30px !important;
+}
+
 .page-title {
     color: var(--primary-color);
     font-size: 28px;

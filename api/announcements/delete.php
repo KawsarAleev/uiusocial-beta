@@ -11,9 +11,10 @@ $stmt = $db->prepare("SELECT club_id, created_by FROM announcements WHERE id = ?
 $stmt->execute([$annId]);
 $ann = $stmt->fetch();
 if (!$ann) jsonResponse(['error' => 'Announcement not found'], 404);
-$isClubManager = isClubManager($ann['club_id']);
-if (!$isClubManager && !isAdmin()) jsonResponse(['error' => 'Not allowed'], 403);
-$isAdminAction = isAdmin() && !$isClubManager;
+$isClubManager = $ann['club_id'] ? isClubManager($ann['club_id']) : false;
+$isCreator = (int)($ann['created_by'] ?? 0) === (int) $me;
+if (!$isClubManager && !isAdmin() && !isGroupModerator() && !$isCreator) jsonResponse(['error' => 'Not allowed'], 403);
+$isAdminAction = (isAdmin() || isGroupModerator()) && !$isClubManager && !$isCreator;
 $db->prepare("DELETE FROM announcement_comments WHERE announcement_id = ?")->execute([$annId]);
 $db->prepare("DELETE FROM announcement_likes WHERE announcement_id = ?")->execute([$annId]);
 $db->prepare("DELETE FROM announcements WHERE id = ?")->execute([$annId]);

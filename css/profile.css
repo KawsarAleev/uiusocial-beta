@@ -58,6 +58,17 @@
     gap: 12px;
 }
 
+.profile-actions .btn-delete {
+    color: var(--danger-color);
+    border-color: var(--border-color);
+}
+
+.profile-actions .btn-delete:hover {
+    color: #fff;
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
 .profile-tabs {
     display: flex;
     justify-content: center;
